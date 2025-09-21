@@ -1,7 +1,7 @@
 export interface LoginFormData {
   email: string;
   password: string;
-  otp: string;
+  otp?: string;
 }
 
 export interface LoginState {

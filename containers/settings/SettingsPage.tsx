@@ -9,7 +9,7 @@ import {
   Database,
   RefreshCw
 } from 'lucide-react';
-import { ProfileFormData, PasswordFormData, NotificationSettingsData, UserPreferencesData, SystemInfo, SupportInfo } from './types/settings-type';
+import { ProfileFormData, PasswordFormData, NotificationSettings, UserPreferences, SystemInfo, SupportInfo } from './types/settings-type';
 import SettingsSidebar from './components/SettingsSidebar';
 import ProfileTab from './components/ProfileTab';
 import SecurityTab from './components/SecurityTab';
@@ -61,7 +61,7 @@ export default function SettingsPage() {
     }
   };
 
-  const handleNotificationSettings = async (data: NotificationSettingsData) => {
+  const handleNotificationSettings = async (data: NotificationSettings) => {
     try {
       console.log('Notification settings:', data);
       // Mock API call
@@ -73,7 +73,7 @@ export default function SettingsPage() {
     }
   };
 
-  const handlePreferences = async (data: UserPreferencesData) => {
+  const handlePreferences = async (data: UserPreferences) => {
     try {
       console.log('User preferences:', data);
       // Mock API call

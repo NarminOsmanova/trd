@@ -3,7 +3,7 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { X, Calendar, Users, FileText } from 'lucide-react';
+import { X, Calendar } from 'lucide-react';
 import { projectSchema, type ProjectFormData } from '@/lib/validations';
 import { mockUsers } from '@/lib/mock-data';
 
@@ -70,8 +70,8 @@ export default function ProjectModal({
         name: 'assignedUsers',
         value: newUsers
       }
-    };
-    register('assignedUsers').onChange(event as any);
+    } as unknown as React.ChangeEvent<HTMLInputElement>;
+    register('assignedUsers').onChange(event);
   };
 
   if (!isOpen) return null;

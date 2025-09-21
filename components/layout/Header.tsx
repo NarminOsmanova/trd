@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Bell, Search, User, Menu, X } from 'lucide-react';
+import React from 'react';
+import { Bell, Search, User} from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface HeaderProps {
@@ -11,7 +11,6 @@ interface HeaderProps {
 
 export default function Header({ title, subtitle }: HeaderProps) {
   const { user } = useAuth();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
     <header className="bg-white border-b border-gray-200">

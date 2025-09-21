@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { X, Calendar, DollarSign, FileText, TrendingUp, TrendingDown } from 'lucide-react';
@@ -22,7 +22,6 @@ export default function TransactionModal({
   title,
   initialData 
 }: TransactionModalProps) {
-  const [selectedType, setSelectedType] = useState<'income' | 'expense'>('expense');
 
   const {
     register,
@@ -62,7 +61,6 @@ export default function TransactionModal({
   };
 
   const handleTypeChange = (type: 'income' | 'expense') => {
-    setSelectedType(type);
     setValue('type', type);
   };
 

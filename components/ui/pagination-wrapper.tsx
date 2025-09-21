@@ -35,8 +35,6 @@ export default function PaginationWrapper({
     goToPage,
     nextPage,
     previousPage,
-    goToFirstPage,
-    goToLastPage,
     setItemsPerPage,
     itemsPerPage
   } = pagination;
