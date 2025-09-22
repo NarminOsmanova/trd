@@ -21,6 +21,7 @@ export interface ProjectFormData {
   startDate: string;
   endDate?: string;
   assignedUsers: string[];
+  targetBudget?: number;
 }
 
 export interface ProjectFilters {

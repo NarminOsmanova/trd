@@ -13,12 +13,18 @@ import {
 } from 'lucide-react';
 import { mockData } from '@/lib/mock-data';
 import { formatCurrency } from '@/lib/utils';
-import { Transaction, TransactionFilters, TransactionStats } from './types/transactions-type';
+import { Transaction } from '@/types';
+import { TransactionFilters, TransactionStats } from './types/transactions-type';
 import TransactionsTable from './components/TransactionsTable';
 import FormComponent from './components/FormComponent';
+import TransactionViewModal from './components/TransactionViewModal';
+
+type TransactionStatus = 'pending' | 'approved' | 'rejected';
 
 export default function TransactionsPage() {
   const [transactions] = useState<Transaction[]>(mockData.transactions);
+  const [transactionStatuses, setTransactionStatuses] = useState<Map<string, TransactionStatus>>(new Map());
+  const [viewTransaction, setViewTransaction] = useState<Transaction | null>(null);
   const [filters, setFilters] = useState<TransactionFilters>({
     searchTerm: '',
     type: undefined,
@@ -83,7 +89,8 @@ export default function TransactionsPage() {
   };
 
   const handleViewTransaction = (transactionId: string) => {
-    console.log('View transaction:', transactionId);
+    const tx = transactions.find(t => t.id === transactionId) || null;
+    setViewTransaction(tx);
   };
 
   const handleEditTransaction = (transaction: Transaction) => {
@@ -93,6 +100,18 @@ export default function TransactionsPage() {
 
   const handleDeleteTransaction = (transactionId: string) => {
     console.log('Delete transaction:', transactionId);
+  };
+
+  const handleApproveTransaction = (transactionId: string) => {
+    setTransactionStatuses(prev => new Map(prev).set(transactionId, 'approved'));
+  };
+
+  const handleRejectTransaction = (transactionId: string) => {
+    setTransactionStatuses(prev => new Map(prev).set(transactionId, 'rejected'));
+  };
+
+  const getTransactionStatus = (transactionId: string): TransactionStatus => {
+    return transactionStatuses.get(transactionId) || 'pending';
   };
 
   const handleCreateTransaction = () => {
@@ -230,6 +249,9 @@ export default function TransactionsPage() {
           onViewTransaction={handleViewTransaction}
           onEditTransaction={handleEditTransaction}
           onDeleteTransaction={handleDeleteTransaction}
+          onApproveTransaction={handleApproveTransaction}
+          onRejectTransaction={handleRejectTransaction}
+          getTransactionStatus={getTransactionStatus}
           onCreateTransaction={handleCreateTransaction}
         />
 
@@ -300,6 +322,15 @@ export default function TransactionsPage() {
           date: editingTransaction.date
         } : undefined}
       />
+
+      {/* View Modal */}
+      {viewTransaction && (
+        <TransactionViewModal
+          isOpen={!!viewTransaction}
+          onClose={() => setViewTransaction(null)}
+          transaction={viewTransaction}
+        />
+      )}
     </>
   );
 }

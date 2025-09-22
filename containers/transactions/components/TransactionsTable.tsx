@@ -16,7 +16,8 @@ import {
   FolderOpen,
   DollarSign
 } from 'lucide-react';
-import { Transaction, TransactionFilters } from '../types/transactions-type';
+import { Transaction } from '@/types';
+import { TransactionFilters } from '../types/transactions-type';
 import { mockData } from '@/lib/mock-data';
 import { 
   formatCurrency, 
@@ -33,6 +34,8 @@ import PaginationWrapper from '@/components/ui/pagination-wrapper';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+type TransactionStatus = 'pending' | 'approved' | 'rejected';
+
 interface TransactionsTableProps {
   transactions: Transaction[];
   filters: TransactionFilters;
@@ -40,6 +43,9 @@ interface TransactionsTableProps {
   onViewTransaction: (id: string) => void;
   onEditTransaction: (transaction: Transaction) => void;
   onDeleteTransaction: (id: string) => void;
+  onApproveTransaction: (id: string) => void;
+  onRejectTransaction: (id: string) => void;
+  getTransactionStatus: (id: string) => TransactionStatus;
   onCreateTransaction: () => void;
 }
 
@@ -50,6 +56,9 @@ export default function TransactionsTable({
   onViewTransaction,
   onEditTransaction,
   onDeleteTransaction,
+  onApproveTransaction,
+  onRejectTransaction,
+  getTransactionStatus,
   onCreateTransaction
 }: TransactionsTableProps) {
   
@@ -352,6 +361,38 @@ export default function TransactionsTable({
                   {/* Actions */}
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end space-x-2">
+                      {getTransactionStatus(transaction.id) === 'pending' && (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => onRejectTransaction(transaction.id)}
+                            title="Rədd et"
+                            className="text-red-600 border-red-200 hover:bg-red-50"
+                          >
+                            Rədd et
+                          </Button>
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => onApproveTransaction(transaction.id)}
+                            title="Təsdiqlə"
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                          >
+                            Təsdiqlə
+                          </Button>
+                        </>
+                      )}
+                      {getTransactionStatus(transaction.id) === 'approved' && (
+                        <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                          Təsdiqləndi
+                        </span>
+                      )}
+                      {getTransactionStatus(transaction.id) === 'rejected' && (
+                        <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                          Rədd edildi
+                        </span>
+                      )}
                       <Button
                         variant="ghost"
                         size="icon"
@@ -377,13 +418,7 @@ export default function TransactionsTable({
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        title="Daha çox"
-                      >
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
+                     
                     </div>
                   </TableCell>
                 </TableRow>

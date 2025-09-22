@@ -17,6 +17,7 @@ import { mockData } from '@/lib/mock-data';
 import { Project, ProjectFormData } from './types/projects-type';
 import ProjectsTable from './components/ProjectsTable';
 import FormComponent from './components/FormComponent';
+import ProjectViewModal from './components/ProjectViewModal';
 
 export default function ProjectsPage() {
   const [projects] = useState<Project[]>(mockData.projects);
@@ -25,6 +26,7 @@ export default function ProjectsPage() {
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [viewProject, setViewProject] = useState<Project | null>(null);
 
   const filteredProjects = projects.filter(project => {
     const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -51,7 +53,8 @@ export default function ProjectsPage() {
   };
 
   const handleViewProject = (projectId: string) => {
-    console.log('View project:', projectId);
+    const project = projects.find(p => p.id === projectId) || null;
+    setViewProject(project);
   };
 
   const handleEditProject = (project: Project) => {
@@ -253,8 +256,16 @@ export default function ProjectsPage() {
           status: editingProject.status,
           startDate: editingProject.startDate,
           endDate: editingProject.endDate,
-          assignedUsers: editingProject.assignedUsers
+          assignedUsers: editingProject.assignedUsers,
+          targetBudget: undefined
         } : undefined}
+      />
+
+      {/* View Modal */}
+      <ProjectViewModal
+        isOpen={!!viewProject}
+        onClose={() => setViewProject(null)}
+        project={viewProject}
       />
     </>
   );

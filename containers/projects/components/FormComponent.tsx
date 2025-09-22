@@ -52,6 +52,7 @@ export default function FormComponent({
       status: 'active',
       startDate: new Date().toISOString().split('T')[0],
       endDate: '',
+      targetBudget: undefined,
       assignedUsers: [],
       ...initialData
     }
@@ -153,6 +154,20 @@ export default function FormComponent({
               />
               {errors.startDate && (
                 <p className="text-sm text-red-600">{errors.startDate.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="targetBudget">Hədəf Büdcə (optional)</Label>
+              <Input
+                {...register('targetBudget')}
+                type="number"
+                inputMode="numeric"
+                id="targetBudget"
+                placeholder="Məs: 100000"
+              />
+              {errors.targetBudget && (
+                <p className="text-sm text-red-600">{errors.targetBudget.message as string}</p>
               )}
             </div>
 

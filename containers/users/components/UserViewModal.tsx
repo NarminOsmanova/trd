@@ -86,7 +86,7 @@ export default function UserViewModal({
       open={isOpen}
       setOpen={(open) => !open && onClose()}
       title="İstifadəçi Məlumatları"
-      size="full"
+      size="xl"
       maxHeight="max-h-[95vh]"
       className=""
       contentClassName="p-0"
