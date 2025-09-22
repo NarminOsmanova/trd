@@ -2,47 +2,44 @@
 
 import React from 'react';
 import { 
-  Edit, 
-  Trash2, 
-  MoreVertical, 
   Mail,
   Phone,
   Shield,
   ShieldCheck,
   UserCheck,
   UserX,
-  Eye,
-  Search
+  Search,
+  DollarSign,
+  TrendingUp,
+  Calendar
 } from 'lucide-react';
 import { User, UserFilters } from '../types/users-type';
 import { mockData } from '@/lib/mock-data';
 import { formatDate, getRoleLabel, getInitials } from '@/lib/utils';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { usePagination } from '@/hooks/usePagination';
 import PaginationWrapper from '@/components/ui/pagination-wrapper';
 
-interface UsersTableProps {
+interface UsersCardProps {
   users: User[];
   filters: UserFilters;
   onFiltersChange: (filters: Partial<UserFilters>) => void;
   onViewUser: (id: string) => void;
 }
 
-export default function UsersTable({
+export default function UsersCard({
   users,
   filters,
   onFiltersChange,
   onViewUser
-}: UsersTableProps) {
+}: UsersCardProps) {
   
   // Add pagination
   const pagination = usePagination({ 
     data: users, 
-    itemsPerPage: 10 
+    itemsPerPage: 12 
   });
 
   const getTotalTransactions = (userId: string) => {
@@ -189,121 +186,128 @@ export default function UsersTable({
         </div>
       </div>
 
-      {/* Users Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>İstifadəçi</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Telefon</TableHead>
-              <TableHead>Rol</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Büdcə Məlumatları</TableHead>
-              <TableHead>Tarix</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {pagination.paginatedData.map((user) => {
-              const budgetInfo = getBudgetInfo(user.id);
-              
-              return (
-                <TableRow key={user.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => onViewUser(user.id)}>
-                {/* User Info */}
-                <TableCell>
-                  <div className="flex items-center">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                      <span className="text-sm font-medium text-blue-600">
-                        {getInitials(user.name)}
-                      </span>
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-gray-900">
-                        {user.name}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        ID: {user.id}
-                      </div>
-                    </div>
-                  </div>
-                </TableCell>
-
-                {/* Email */}
-                <TableCell>
-                  <div className="flex items-center text-sm text-gray-900">
-                    <Mail className="w-4 h-4 mr-2 text-gray-400" />
-                    {user.email}
-                  </div>
-                </TableCell>
-
-                {/* Phone */}
-                <TableCell>
-                  <div className="flex items-center text-sm text-gray-900">
-                    <Phone className="w-4 h-4 mr-2 text-gray-400" />
-                    {user.phone || 'Təyin edilməyib'}
-                  </div>
-                </TableCell>
-
-                {/* Role */}
-                <TableCell>
-                  <div className="flex items-center">
-                    {user.role === 'admin' ? (
-                      <Shield className="w-4 h-4 text-purple-600 mr-2" />
+      {/* Users Cards Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3  gap-6">
+        {pagination.paginatedData.map((user) => {
+          const budgetInfo = getBudgetInfo(user.id);
+          
+          return (
+            <div 
+              key={user.id} 
+              className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-200 cursor-pointer group"
+              onClick={() => onViewUser(user.id)}
+            >
+              {/* Card Header */}
+              <div className="p-6 pb-4">
+                <div className="flex items-center space-x-4 mb-4">
+                  <div className="relative">
+                    {user.avatar ? (
+                      <img 
+                        src={user.avatar} 
+                        alt={user.name}
+                        className="w-12 h-12 rounded-full object-cover"
+                      />
                     ) : (
-                      <ShieldCheck className="w-4 h-4 text-blue-600 mr-2" />
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                        <span className="text-white font-semibold text-sm">
+                          {getInitials(user.name)}
+                        </span>
+                      </div>
                     )}
-                    <Badge variant={user.role === 'admin' ? 'secondary' : 'default'}>
+                    <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${
+                      user.isActive ? 'bg-green-500' : 'bg-red-500'
+                    }`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg font-semibold text-gray-900 truncate">
+                      {user.name}
+                    </h3>
+                    <p className="text-sm text-gray-500 truncate">
+                      ID: {user.id}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Role Badge */}
+                <div className="flex items-center justify-center mb-4">
+                  <div className="flex items-center space-x-2">
+                    {user.role === 'admin' ? (
+                      <Shield className="w-4 h-4 text-purple-600" />
+                    ) : (
+                      <ShieldCheck className="w-4 h-4 text-blue-600" />
+                    )}
+                    <Badge variant={user.role === 'admin' ? 'secondary' : 'default'} className="text-xs">
                       {getRoleLabel(user.role)}
                     </Badge>
                   </div>
-                </TableCell>
+                </div>
+              </div>
 
-                {/* Status */}
-                <TableCell>
+              {/* Card Body */}
+              <div className="px-6 pb-4">
+                {/* Contact Info */}
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center text-sm text-gray-600">
+                    <Mail className="w-4 h-4 mr-2 text-gray-400" />
+                    <span className="truncate">{user.email}</span>
+                  </div>
+                  {user.phone && (
+                    <div className="flex items-center text-sm text-gray-600">
+                      <Phone className="w-4 h-4 mr-2 text-gray-400" />
+                      <span>{user.phone}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Budget Information */}
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center">
+                      <DollarSign className="w-4 h-4 text-green-600 mr-1" />
+                      <span className="text-sm font-medium text-gray-700">Ümumi Büdcə</span>
+                    </div>
+                    <span className="text-lg font-bold text-green-600">
+                      {budgetInfo.totalAmount.toLocaleString()} AZN
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-gray-500">
+                    <div className="flex items-center">
+                      <TrendingUp className="w-3 h-3 mr-1" />
+                      <span>{budgetInfo.transactionCount} əməliyyat</span>
+                    </div>
+                    <span>Orta: {budgetInfo.avgTransaction.toLocaleString()} AZN</span>
+                  </div>
+                </div>
+
+                {/* Status and Date */}
+                <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     {user.isActive ? (
-                      <UserCheck className="w-4 h-4 text-green-600 mr-2" />
+                      <UserCheck className="w-4 h-4 text-green-600 mr-1" />
                     ) : (
-                      <UserX className="w-4 h-4 text-red-600 mr-2" />
+                      <UserX className="w-4 h-4 text-red-600 mr-1" />
                     )}
-                    <Badge variant={user.isActive ? 'success' : 'destructive'}>
+                    <Badge variant={user.isActive ? 'success' : 'destructive'} className="text-xs">
                       {user.isActive ? 'Aktiv' : 'Qeyri-aktiv'}
                     </Badge>
                   </div>
-                </TableCell>
-
-                {/* Budget Information */}
-                <TableCell>
-                  <div className="text-sm text-gray-900">
-                    <div className="font-semibold text-green-600">
-                      {budgetInfo.totalAmount.toLocaleString()} AZN
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {budgetInfo.transactionCount} əməliyyat
-                    </div>
-                    <div className="text-xs text-gray-400">
-                      Orta: {budgetInfo.avgTransaction.toLocaleString()} AZN
-                    </div>
+                  <div className="flex items-center text-xs text-gray-500">
+                    <Calendar className="w-3 h-3 mr-1" />
+                    <span>{formatDate(user.createdAt)}</span>
                   </div>
-                </TableCell>
-
-                {/* Created Date */}
-                <TableCell className="text-sm text-gray-500">
-                  {formatDate(user.createdAt)}
-                </TableCell>
-              </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-
-        {/* Pagination */}
-        {pagination.totalPages > 1 && (
-          <div className="mt-4">
-            <PaginationWrapper pagination={pagination} />
-          </div>
-        )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
+
+      {/* Pagination */}
+      {pagination.totalPages > 1 && (
+        <div className="mt-6">
+          <PaginationWrapper pagination={pagination} />
+        </div>
+      )}
     </div>
   );
 }

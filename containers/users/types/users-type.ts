@@ -7,6 +7,7 @@ export interface User {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  avatar?: string;
 }
 
 export interface UserFormData {

@@ -7,12 +7,15 @@ import {
   UserCheck,
   UserX,
   RefreshCw,
-  Filter
+  Filter,
+  Grid3X3,
+  List
 } from 'lucide-react';
 import { mockData } from '@/lib/mock-data';
 import { User, UserFilters, UserStats } from './types/users-type';
 import UsersTable from './components/UsersTable';
-import FormComponent from './components/FormComponent';
+import UsersCard from './components/UsersCard';
+import UserViewModal from './components/UserViewModal';
 
 export default function UsersPage() {
   const [users] = useState<User[]>(mockData.users);
@@ -21,8 +24,9 @@ export default function UsersPage() {
     role: undefined,
     status: undefined
   });
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [viewMode, setViewMode] = useState<'card' | 'table'>('card');
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Filter users based on current filters
   const filteredUsers = useMemo(() => {
@@ -57,46 +61,16 @@ export default function UsersPage() {
   };
 
   const handleViewUser = (userId: string) => {
-    console.log('View user:', userId);
-  };
-
-  const handleEditUser = (user: User) => {
-    setEditingUser(user);
-    setIsFormOpen(true);
-  };
-
-  const handleDeleteUser = (userId: string) => {
-    console.log('Delete user:', userId);
-  };
-
-  const handleCreateUser = () => {
-    setEditingUser(null);
-    setIsFormOpen(true);
-  };
-
-  const handleFormSubmit = async (data: any) => {
-    try {
-      if (editingUser) {
-        // Update existing user
-        console.log('Update user:', editingUser.id, data);
-      } else {
-        // Create new user
-        console.log('Create user:', data);
-      }
-      
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setIsFormOpen(false);
-      setEditingUser(null);
-    } catch (error) {
-      console.error('Form submission error:', error);
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      setSelectedUser(user);
+      setIsModalOpen(true);
     }
   };
 
-  const handleCloseForm = () => {
-    setIsFormOpen(false);
-    setEditingUser(null);
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedUser(null);
   };
 
   const handleRefresh = () => {
@@ -132,6 +106,34 @@ export default function UsersPage() {
           </div>
 
           <div className="flex items-center space-x-2">
+            {/* View Toggle */}
+            <div className="flex items-center bg-gray-100 rounded-lg p-1">
+              <button
+                onClick={() => setViewMode('card')}
+                className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                  viewMode === 'card'
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+                title="Kart görünüşü"
+              >
+                <Grid3X3 className="w-4 h-4 mr-2" />
+                Kartlar
+              </button>
+              <button
+                onClick={() => setViewMode('table')}
+                className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                  viewMode === 'table'
+                    ? 'bg-white text-blue-600 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+                title="Cədvəl görünüşü"
+              >
+                <List className="w-4 h-4 mr-2" />
+                Cədvəl
+              </button>
+            </div>
+            
             <button
               onClick={handleClearFilters}
               className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
@@ -142,16 +144,22 @@ export default function UsersPage() {
           </div>
         </div>
 
-        {/* Users Table */}
-        <UsersTable
-          users={filteredUsers}
-          filters={filters}
-          onFiltersChange={handleFiltersChange}
-          onViewUser={handleViewUser}
-          onEditUser={handleEditUser}
-          onDeleteUser={handleDeleteUser}
-          onCreateUser={handleCreateUser}
-        />
+        {/* Users View */}
+        {viewMode === 'card' ? (
+          <UsersCard
+            users={filteredUsers}
+            filters={filters}
+            onFiltersChange={handleFiltersChange}
+            onViewUser={handleViewUser}
+          />
+        ) : (
+          <UsersTable
+            users={filteredUsers}
+            filters={filters}
+            onFiltersChange={handleFiltersChange}
+            onViewUser={handleViewUser}
+          />
+        )}
 
         {/* Summary Statistics */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -256,19 +264,11 @@ export default function UsersPage() {
         </div>
       </div>
 
-      {/* Form Modal */}
-      <FormComponent
-        isOpen={isFormOpen}
-        onClose={handleCloseForm}
-        onSubmit={handleFormSubmit}
-        title={editingUser ? 'İstifadəçini Redaktə Et' : 'Yeni İstifadəçi Yarat'}
-        initialData={editingUser ? {
-          name: editingUser.name,
-          email: editingUser.email,
-          phone: editingUser.phone,
-          role: editingUser.role,
-          isActive: editingUser.isActive
-        } : undefined}
+      {/* User View Modal */}
+      <UserViewModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        user={selectedUser}
       />
     </>
   );
