@@ -16,6 +16,7 @@ import SecurityTab from './components/SecurityTab';
 import NotificationsTab from './components/NotificationsTab';
 import PreferencesTab from './components/PreferencesTab';
 import SystemTab from './components/SystemTab';
+import UsersManagementTab from './components/UsersManagementTab';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('profile');
@@ -99,6 +100,8 @@ export default function SettingsPage() {
         return <NotificationsTab onSubmit={handleNotificationSettings} />;
       case 'preferences':
         return <PreferencesTab onSubmit={handlePreferences} />;
+      case 'users':
+        return <UsersManagementTab />;
       case 'system':
         return <SystemTab systemInfo={systemInfo} supportInfo={supportInfo} />;
       default:

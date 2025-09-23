@@ -18,7 +18,7 @@ import UsersCard from './components/UsersCard';
 import UserViewModal from './components/UserViewModal';
 
 export default function UsersPage() {
-  const [users] = useState<User[]>(mockData.users);
+  const [users, setUsers] = useState<User[]>(mockData.users);
   const [filters, setFilters] = useState<UserFilters>({
     searchTerm: '',
     role: undefined,
@@ -68,6 +68,10 @@ export default function UsersPage() {
     }
   };
 
+  const handleToggleStatus = (userId: string) => {
+    setUsers(prev => prev.map(u => u.id === userId ? { ...u, isActive: !u.isActive } : u));
+  };
+
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedUser(null);
@@ -105,12 +109,12 @@ export default function UsersPage() {
             </button>
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto justify-start sm:justify-end">
             {/* View Toggle */}
-            <div className="flex items-center bg-gray-100 rounded-lg p-1">
+            <div className="flex items-center bg-gray-100 rounded-lg p-1 flex-wrap">
               <button
                 onClick={() => setViewMode('card')}
-                className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                className={`flex items-center px-2 md:px-3 py-2 text-sm font-medium rounded-md transition-colors whitespace-nowrap ${
                   viewMode === 'card'
                     ? 'bg-white text-blue-600 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
@@ -118,11 +122,11 @@ export default function UsersPage() {
                 title="Kart görünüşü"
               >
                 <Grid3X3 className="w-4 h-4 mr-2" />
-                Kartlar
+                <span className="hidden lg:inline">Kartlar</span>
               </button>
               <button
                 onClick={() => setViewMode('table')}
-                className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                className={`flex items-center px-2 md:px-3 py-2 text-sm font-medium rounded-md transition-colors whitespace-nowrap ${
                   viewMode === 'table'
                     ? 'bg-white text-blue-600 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
@@ -130,16 +134,16 @@ export default function UsersPage() {
                 title="Cədvəl görünüşü"
               >
                 <List className="w-4 h-4 mr-2" />
-                Cədvəl
+                <span className="hidden lg:inline">Cədvəl</span>
               </button>
             </div>
             
             <button
               onClick={handleClearFilters}
-              className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="inline-flex items-center px-2 md:px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors whitespace-nowrap"
             >
               <Filter className="w-4 h-4 mr-2" />
-              Filtrləri Təmizlə
+              <span className="hidden lg:inline">Filtrləri Təmizlə</span>
             </button>
           </div>
         </div>
@@ -151,6 +155,7 @@ export default function UsersPage() {
             filters={filters}
             onFiltersChange={handleFiltersChange}
             onViewUser={handleViewUser}
+            onToggleStatus={handleToggleStatus}
           />
         ) : (
           <UsersTable
@@ -158,6 +163,7 @@ export default function UsersPage() {
             filters={filters}
             onFiltersChange={handleFiltersChange}
             onViewUser={handleViewUser}
+            onToggleStatus={handleToggleStatus}
           />
         )}
 

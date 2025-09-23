@@ -178,9 +178,13 @@ export function formatPhone(phone: string): string {
 export function getTransactionTypeLabel(type: string): string {
   switch (type) {
     case 'income':
-      return 'Daxilolma';
+      return 'Mədaxil';
     case 'expense':
-      return 'Xərc';
+      return 'Məxaric';
+    case 'transfer':
+      return 'Transfer';
+    case 'topup':
+      return 'Hesab artımı';
     default:
       return type;
   }

@@ -3,9 +3,10 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'admin' | 'user';
+  role: 'admin' | 'user' | 'partner';
   avatar?: string;
   phone?: string;
+  position?: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -33,13 +34,19 @@ export interface Transaction {
   id: string;
   projectId: string;
   userId: string;
-  type: 'income' | 'expense';
+  type: 'income' | 'expense' | 'transfer' | 'topup';
   amount: number;
   category: TransactionCategory;
   description?: string;
   date: string;
   createdAt: string;
   updatedAt: string;
+  // Optional extensions
+  currency?: 'AZN' | 'USD' | 'EUR';
+  source?: 'cash' | 'bank' | 'partner' | 'own';
+  receiptUrl?: string; // data URL or URL
+  fromProjectId?: string;
+  toProjectId?: string;
 }
 
 export type TransactionCategory = 

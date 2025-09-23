@@ -30,13 +30,15 @@ interface UsersTableProps {
   filters: UserFilters;
   onFiltersChange: (filters: Partial<UserFilters>) => void;
   onViewUser: (id: string) => void;
+  onToggleStatus: (id: string) => void;
 }
 
 export default function UsersTable({
   users,
   filters,
   onFiltersChange,
-  onViewUser
+  onViewUser,
+  onToggleStatus
 }: UsersTableProps) {
   
   // Add pagination
@@ -196,7 +198,7 @@ export default function UsersTable({
             <TableRow>
               <TableHead>İstifadəçi</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>Telefon</TableHead>
+              <TableHead>Vəzifə</TableHead>
               <TableHead>Rol</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Büdcə Məlumatları</TableHead>
@@ -236,11 +238,10 @@ export default function UsersTable({
                   </div>
                 </TableCell>
 
-                {/* Phone */}
+                {/* Position */}
                 <TableCell>
                   <div className="flex items-center text-sm text-gray-900">
-                    <Phone className="w-4 h-4 mr-2 text-gray-400" />
-                    {user.phone || 'Təyin edilməyib'}
+                    {user.position || 'Təyin edilməyib'}
                   </div>
                 </TableCell>
 
@@ -260,16 +261,17 @@ export default function UsersTable({
 
                 {/* Status */}
                 <TableCell>
-                  <div className="flex items-center">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onToggleStatus(user.id); }}
+                    className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${user.isActive ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}
+                  >
                     {user.isActive ? (
-                      <UserCheck className="w-4 h-4 text-green-600 mr-2" />
+                      <UserCheck className="w-4 h-4 mr-1" />
                     ) : (
-                      <UserX className="w-4 h-4 text-red-600 mr-2" />
+                      <UserX className="w-4 h-4 mr-1" />
                     )}
-                    <Badge variant={user.isActive ? 'success' : 'destructive'}>
-                      {user.isActive ? 'Aktiv' : 'Qeyri-aktiv'}
-                    </Badge>
-                  </div>
+                    {user.isActive ? 'Aktiv' : 'Qeyri-aktiv'}
+                  </button>
                 </TableCell>
 
                 {/* Budget Information */}

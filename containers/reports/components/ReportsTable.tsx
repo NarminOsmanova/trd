@@ -135,8 +135,53 @@ export default function ReportsTable({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="overview">Ümumi Baxış</SelectItem>
-                <SelectItem value="detailed">Ətraflı Hesabat</SelectItem>
-                <SelectItem value="comparison">Müqayisəli Analiz</SelectItem>
+                <SelectItem value="byProject">Layihə üzrə</SelectItem>
+                <SelectItem value="byUser">İstifadəçi üzrə</SelectItem>
+                <SelectItem value="byType">Əməliyyat tipinə görə</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* User filter (visible for byProject or byUser) */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              İstifadəçi
+            </label>
+            <Select 
+              value={filters.userId || 'all'} 
+              onValueChange={(value) => onFiltersChange({ userId: value === 'all' ? undefined : value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="İstifadəçi seçin" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Hamısı</SelectItem>
+                {mockData.users.map(user => (
+                  <SelectItem key={user.id} value={user.id}>
+                    {user.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Type filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Əməliyyat növü
+            </label>
+            <Select 
+              value={filters.type || 'all'} 
+              onValueChange={(value) => onFiltersChange({ type: value === 'all' ? undefined : value as any })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Tip seçin" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Hamısı</SelectItem>
+                <SelectItem value="income">Mədaxil</SelectItem>
+                <SelectItem value="expense">Məxaric</SelectItem>
+                <SelectItem value="transfer">Transfer</SelectItem>
               </SelectContent>
             </Select>
           </div>

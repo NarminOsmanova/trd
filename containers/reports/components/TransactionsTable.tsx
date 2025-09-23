@@ -116,19 +116,19 @@ export default function TransactionsTable({
                   </TableCell>
                   <TableCell>
                     <Badge 
-                      variant={transaction.type === 'income' ? 'success' : 'destructive'}
+                      variant={transaction.type === 'income' ? 'success' : transaction.type === 'expense' ? 'destructive' : 'secondary'}
                       className="text-xs"
                     >
-                      {transaction.type === 'income' ? 'Daxilolma' : 'Xərc'}
+                      {transaction.type === 'income' ? 'Mədaxil' : transaction.type === 'expense' ? 'Məxaric' : 'Transfer'}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-sm text-gray-900">
                     {getCategoryLabel(transaction.category)}
                   </TableCell>
                   <TableCell className={`text-sm font-medium ${
-                    transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                    transaction.type === 'income' ? 'text-green-600' : transaction.type === 'expense' ? 'text-red-600' : 'text-blue-600'
                   }`}>
-                    {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                    {transaction.type === 'income' ? '+' : transaction.type === 'expense' ? '-' : ''}{formatCurrency(transaction.amount)} {transaction.currency || 'AZN'}
                   </TableCell>
                   <TableCell className="text-sm text-gray-900 max-w-xs truncate">
                     {transaction.description || '-'}

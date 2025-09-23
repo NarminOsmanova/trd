@@ -22,7 +22,6 @@ import { mockData } from '@/lib/mock-data';
 import { formatDate, getRoleLabel, getInitials } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import DialogComponent from '@/components/modals/DialogComponent';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface UserViewModalProps {
   isOpen: boolean;
@@ -77,9 +76,6 @@ export default function UserViewModal({
   const budgetInfo = getBudgetInfo(user.id);
   const userProjects = getUserProjects(user.id);
   const userTransactions = getUserTransactions(user.id);
-  
-  // Debug: Check if transactions are loaded
-  console.log('User transactions for', user.name, ':', userTransactions.length);
 
   return (
     <DialogComponent
@@ -144,6 +140,11 @@ export default function UserViewModal({
                     <Mail className="w-4 h-4 mr-2 text-gray-400" />
                     <span>{user.email}</span>
                   </div>
+                  {user.position && (
+                    <div className="flex items-center">
+                      <span className="inline-flex items-center px-2 py-1 rounded-md bg-gray-100 text-gray-700 mr-2">{user.position}</span>
+                    </div>
+                  )}
                   {user.phone && (
                     <div className="flex items-center">
                       <Phone className="w-4 h-4 mr-2 text-gray-400" />
@@ -252,55 +253,46 @@ export default function UserViewModal({
             </h3>
             
             {userTransactions.length > 0 ? (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Tarix</TableHead>
-                      <TableHead>Tip</TableHead>
-                      <TableHead>Kateqoriya</TableHead>
-                      <TableHead>Təsvir</TableHead>
-                      <TableHead>Məbləğ</TableHead>
-                      <TableHead>Layihə</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {userTransactions.map((transaction) => {
-                      const project = mockData.projects.find(p => p.id === transaction.projectId);
-                      return (
-                        <TableRow key={transaction.id}>
-                          <TableCell className="text-sm text-gray-600">
-                            {formatDate(transaction.date)}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center">
-                              {transaction.type === 'income' ? (
-                                <ArrowUpRight className="w-4 h-4 text-green-600 mr-1" />
-                              ) : (
-                                <ArrowDownLeft className="w-4 h-4 text-red-600 mr-1" />
-                              )}
-                              <Badge variant={transaction.type === 'income' ? 'success' : 'destructive'} className="text-xs">
-                                {transaction.type === 'income' ? 'Gəlir' : 'Xərc'}
-                              </Badge>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-sm">
-                            {getTransactionCategoryLabel(transaction.category)}
-                          </TableCell>
-                          <TableCell className="text-sm text-gray-600">
-                            {transaction.description}
-                          </TableCell>
-                          <TableCell className="text-sm font-medium">
-                            {transaction.amount.toLocaleString()} AZN
-                          </TableCell>
-                          <TableCell className="text-sm text-gray-600">
-                            {project?.name || 'Naməlum'}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {/* Header Row */}
+                <div className="grid grid-cols-4 items-center text-xs text-gray-500 px-1 pb-2 border-b border-gray-200">
+                  <div>Tarix</div>
+                  <div>Tip</div>
+                  <div>Təsvir</div>
+                  <div className="text-right">Məbləğ</div>
+                </div>
+                
+                {/* Transactions List */}
+                {userTransactions.map((transaction) => {
+                  const project = mockData.projects.find(p => p.id === transaction.projectId);
+                  return (
+                    <div key={transaction.id} className="bg-white rounded-lg p-3 grid grid-cols-4 items-center gap-2 border border-gray-100">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{formatDate(transaction.date)}</p>
+                        <p className="text-xs text-gray-500">{getTransactionCategoryLabel(transaction.category)}</p>
+                      </div>
+                      <div>
+                        <div className="flex items-center">
+                          {transaction.type === 'income' ? (
+                            <ArrowUpRight className="w-4 h-4 text-green-600 mr-1" />
+                          ) : (
+                            <ArrowDownLeft className="w-4 h-4 text-red-600 mr-1" />
+                          )}
+                          <Badge variant={transaction.type === 'income' ? 'success' : 'destructive'} className="text-xs">
+                            {transaction.type === 'income' ? 'Gəlir' : 'Xərc'}
+                          </Badge>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900 mb-1">{transaction.description}</p>
+                        <p className="text-xs text-gray-500">{project?.name || 'Naməlum layihə'}</p>
+                      </div>
+                      <div className={`text-sm font-semibold text-right ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                        {transaction.type === 'income' ? '+' : '-'}{transaction.amount.toLocaleString()} AZN
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center py-8">

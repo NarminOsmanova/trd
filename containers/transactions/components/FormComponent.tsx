@@ -50,6 +50,7 @@ export default function FormComponent({
       amount: 0,
       description: '',
       date: new Date().toISOString().split('T')[0],
+      currency: 'AZN',
       ...initialData
     }
   });
@@ -70,7 +71,7 @@ export default function FormComponent({
   };
 
   const handleTypeChange = (value: string) => {
-    setValue('type', value as 'income' | 'expense');
+    setValue('type', value as TransactionFormData['type']);
   };
 
   const handleProjectChange = (value: string) => {
@@ -79,6 +80,18 @@ export default function FormComponent({
 
   const handleCategoryChange = (value: string) => {
     setValue('category', value);
+  };
+
+  const handleCurrencyChange = (value: string) => {
+    setValue('currency', value as TransactionFormData['currency']);
+  };
+
+  const handleSourceChange = (value: string) => {
+    setValue('source', value as NonNullable<TransactionFormData['source']>);
+  };
+
+  const handleToProjectChange = (value: string) => {
+    setValue('toProjectId', value);
   };
 
   return (
@@ -117,10 +130,12 @@ export default function FormComponent({
                 <SelectTrigger>
                   <SelectValue placeholder="Növ seçin" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="income">Daxilolma</SelectItem>
-                  <SelectItem value="expense">Xərc</SelectItem>
-                </SelectContent>
+              <SelectContent>
+                <SelectItem value="income">Mədaxil (Gəlir)</SelectItem>
+                <SelectItem value="expense">Məxaric (Xərc)</SelectItem>
+                <SelectItem value="transfer">Transfer</SelectItem>
+                <SelectItem value="topup">Hesab artımı</SelectItem>
+              </SelectContent>
               </Select>
               {errors.type && (
                 <p className="text-sm text-red-600">{errors.type.message}</p>
@@ -168,6 +183,74 @@ export default function FormComponent({
               )}
             </div>
           </div>
+
+        {/* Currency & Source */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>Valyuta</Label>
+            <Select onValueChange={handleCurrencyChange} defaultValue={watch('currency')}>
+              <SelectTrigger>
+                <SelectValue placeholder="Valyuta seçin" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="AZN">AZN</SelectItem>
+                <SelectItem value="USD">USD</SelectItem>
+                <SelectItem value="EUR">EUR</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {watch('type') === 'income' && (
+            <div className="space-y-2">
+              <Label>Hardan</Label>
+              <Select onValueChange={handleSourceChange} defaultValue={watch('source')}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Mənbə seçin" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cash">Kassa</SelectItem>
+                  <SelectItem value="bank">Bank</SelectItem>
+                  <SelectItem value="partner">Tərəfdaş</SelectItem>
+                  <SelectItem value="own">Öz vəsaiti</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
+
+        {/* Transfer target project */}
+        {watch('type') === 'transfer' && (
+          <div className="space-y-2">
+            <Label>Hara (Layihə)</Label>
+            <Select onValueChange={handleToProjectChange} defaultValue={watch('toProjectId')}>
+              <SelectTrigger>
+                <SelectValue placeholder="Layihə seçin" />
+              </SelectTrigger>
+              <SelectContent>
+                {mockData.projects.map(project => (
+                  <SelectItem key={project.id} value={project.id}>
+                    {project.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {/* Receipt upload (required) */}
+        <div className="space-y-2">
+          <Label htmlFor="receipt">Qəbz şəkli *</Label>
+          <Input type="file" id="receipt" accept="image/*" onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => setValue('receiptUrl', reader.result as string);
+            reader.readAsDataURL(file);
+          }} />
+          {!watch('receiptUrl') && (
+            <p className="text-xs text-gray-500">Qəbz şəkli zəruridir.</p>
+          )}
+        </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Date */}

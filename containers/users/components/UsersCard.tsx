@@ -27,13 +27,15 @@ interface UsersCardProps {
   filters: UserFilters;
   onFiltersChange: (filters: Partial<UserFilters>) => void;
   onViewUser: (id: string) => void;
+  onToggleStatus: (id: string) => void;
 }
 
 export default function UsersCard({
   users,
   filters,
   onFiltersChange,
-  onViewUser
+  onViewUser,
+  onToggleStatus
 }: UsersCardProps) {
   
   // Add pagination
@@ -245,18 +247,17 @@ export default function UsersCard({
 
               {/* Card Body */}
               <div className="px-6 pb-4">
-                {/* Contact Info */}
+                {/* Contact & Position Info */}
                 <div className="space-y-2 mb-4">
                   <div className="flex items-center text-sm text-gray-600">
                     <Mail className="w-4 h-4 mr-2 text-gray-400" />
                     <span className="truncate">{user.email}</span>
                   </div>
-                  {user.phone && (
-                    <div className="flex items-center text-sm text-gray-600">
-                      <Phone className="w-4 h-4 mr-2 text-gray-400" />
-                      <span>{user.phone}</span>
-                    </div>
-                  )}
+                  <div className="flex items-center text-sm text-gray-600">
+                    <span className="inline-flex items-center px-2 py-1 rounded-md bg-gray-100 text-gray-700">
+                      {user.position || 'Vəzifə təyin edilməyib'}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Budget Information */}
@@ -281,16 +282,17 @@ export default function UsersCard({
 
                 {/* Status and Date */}
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onToggleStatus(user.id); }}
+                    className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium ${user.isActive ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}
+                  >
                     {user.isActive ? (
-                      <UserCheck className="w-4 h-4 text-green-600 mr-1" />
+                      <UserCheck className="w-4 h-4 mr-1" />
                     ) : (
-                      <UserX className="w-4 h-4 text-red-600 mr-1" />
+                      <UserX className="w-4 h-4 mr-1" />
                     )}
-                    <Badge variant={user.isActive ? 'success' : 'destructive'} className="text-xs">
-                      {user.isActive ? 'Aktiv' : 'Qeyri-aktiv'}
-                    </Badge>
-                  </div>
+                    {user.isActive ? 'Aktiv' : 'Qeyri-aktiv'}
+                  </button>
                   <div className="flex items-center text-xs text-gray-500">
                     <Calendar className="w-3 h-3 mr-1" />
                     <span>{formatDate(user.createdAt)}</span>

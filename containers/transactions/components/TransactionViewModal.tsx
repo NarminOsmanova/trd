@@ -34,7 +34,7 @@ export default function TransactionViewModal({ isOpen, onClose, transaction }: T
           <div className={`px-3 py-1 rounded-full text-sm font-medium ${
             transaction.type === 'income' 
               ? 'bg-green-100 text-green-800' 
-              : 'bg-red-100 text-red-800'
+              : transaction.type === 'expense' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
           }`}>
             {getTransactionTypeLabel(transaction.type)}
           </div>
@@ -53,10 +53,22 @@ export default function TransactionViewModal({ isOpen, onClose, transaction }: T
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Məbləğ:</span>
-                  <span className={`text-lg font-bold ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                    {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                  <span className={`text-lg font-bold ${transaction.type === 'income' ? 'text-green-600' : transaction.type === 'expense' ? 'text-red-600' : 'text-blue-600'}`}>
+                    {transaction.type === 'income' ? '+' : transaction.type === 'expense' ? '-' : ''}{formatCurrency(transaction.amount)} {transaction.currency || 'AZN'}
                   </span>
                 </div>
+                {transaction.type === 'income' && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Mənbə:</span>
+                    <span className="text-sm font-medium">{transaction.source || '—'}</span>
+                  </div>
+                )}
+                {transaction.type === 'transfer' && (
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Hara Layihə:</span>
+                    <span className="text-sm font-medium">{mockData.projects.find(p=>p.id===transaction.toProjectId)?.name || '—'}</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-600">Tarix:</span>
                   <span className="text-sm font-medium">{formatDate(transaction.date)}</span>

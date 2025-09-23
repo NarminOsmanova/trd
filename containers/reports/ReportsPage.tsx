@@ -24,7 +24,8 @@ export default function ReportsPage() {
     endDate: '',
     projectId: undefined,
     reportType: 'overview',
-    userId: undefined
+    userId: undefined,
+    type: undefined
   });
 
   // Calculate filtered transactions
@@ -42,6 +43,9 @@ export default function ReportsPage() {
     }
     if (filters.userId) {
       filtered = filtered.filter(t => t.userId === filters.userId);
+    }
+    if (filters.type) {
+      filtered = filtered.filter(t => t.type === filters.type);
     }
     
     return filtered;
@@ -95,7 +99,7 @@ export default function ReportsPage() {
         
         if (t.type === 'income') {
           acc[projectName].income += t.amount;
-        } else {
+        } else if (t.type === 'expense') {
           acc[projectName].expense += t.amount;
         }
         

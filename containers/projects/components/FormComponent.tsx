@@ -53,6 +53,7 @@ export default function FormComponent({
       startDate: new Date().toISOString().split('T')[0],
       endDate: '',
       targetBudget: undefined,
+      monthlyBudget: undefined,
       assignedUsers: [],
       ...initialData
     }
@@ -156,9 +157,33 @@ export default function FormComponent({
                 <p className="text-sm text-red-600">{errors.startDate.message}</p>
               )}
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="endDate">Bitmə Tarixi</Label>
+              <Input
+                {...register('endDate')}
+                type="date"
+                id="endDate"
+              />
+              {errors.endDate && (
+                <p className="text-sm text-red-600">{errors.endDate.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="monthlyBudget">Aylıq Büdcə</Label>
+              <Input
+                {...register('monthlyBudget')}
+                type="number"
+                inputMode="numeric"
+                id="monthlyBudget"
+                placeholder="Məs: 20000"
+              />
+              {errors.monthlyBudget && (
+                <p className="text-sm text-red-600">{errors.monthlyBudget.message as string}</p>
+              )}
+            </div>
 
             <div className="space-y-2">
-              <Label htmlFor="targetBudget">Hədəf Büdcə (optional)</Label>
+              <Label htmlFor="targetBudget">Hədəf Büdcə</Label>
               <Input
                 {...register('targetBudget')}
                 type="number"
@@ -171,20 +196,10 @@ export default function FormComponent({
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="endDate">Bitmə Tarixi</Label>
-              <Input
-                {...register('endDate')}
-                type="date"
-                id="endDate"
-              />
-              {errors.endDate && (
-                <p className="text-sm text-red-600">{errors.endDate.message}</p>
-              )}
-            </div>
+           
           </div>
 
-          {/* Assigned Users */}
+          {/* Assigned Users & Partners */}
           <div className="space-y-2">
             <Label>Təyin Edilmiş İşçilər *</Label>
             <div className="border border-gray-300 rounded-lg p-4 max-h-48 overflow-y-auto">
@@ -216,6 +231,37 @@ export default function FormComponent({
             {errors.assignedUsers && (
               <p className="text-sm text-red-600">{errors.assignedUsers.message}</p>
             )}
+          </div>
+
+          <div className="space-y-2">
+            <Label>Partnyorlar</Label>
+            <div className="border border-gray-300 rounded-lg p-4 max-h-40 overflow-y-auto">
+              <div className="space-y-2">
+                {mockData.users.filter(user => user.role === 'partner').map((user) => (
+                  <label
+                    key={user.id}
+                    className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg"
+                  >
+                    <Checkbox
+                      checked={selectedUsers.includes(user.id)}
+                      onCheckedChange={() => toggleUser(user.id)}
+                    />
+                    <div className="flex items-center space-x-2">
+                      <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                        <span className="text-xs font-medium text-gray-600">
+                          {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                        <p className="text-xs text-gray-500">{user.email}</p>
+                      </div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </div>
+            <p className="text-xs text-gray-500">Partnyor seçimi opsionaldır.</p>
           </div>
 
           <DialogFooter>

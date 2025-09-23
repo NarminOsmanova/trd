@@ -16,6 +16,7 @@ export const mockUsers: User[] = [
     role: 'admin',
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
     phone: '+994501234567',
+    position: 'Baş Administrator',
     isActive: true,
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-01-01T00:00:00Z'
@@ -27,6 +28,7 @@ export const mockUsers: User[] = [
     role: 'user',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
     phone: '+994501234568',
+    position: 'Layihə Meneceri',
     isActive: true,
     createdAt: '2024-01-02T00:00:00Z',
     updatedAt: '2024-01-02T00:00:00Z'
@@ -38,6 +40,7 @@ export const mockUsers: User[] = [
     role: 'user',
     avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face',
     phone: '+994501234569',
+    position: 'Maliyyə Mütəxəssisi',
     isActive: true,
     createdAt: '2024-01-03T00:00:00Z',
     updatedAt: '2024-01-03T00:00:00Z'
@@ -46,9 +49,10 @@ export const mockUsers: User[] = [
     id: '4',
     email: 'elvin@trd.az',
     name: 'Elvin Həsənov',
-    role: 'user',
+    role: 'partner',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
     phone: '+994501234570',
+    position: 'Mühəndis',
     isActive: true,
     createdAt: '2024-01-04T00:00:00Z',
     updatedAt: '2024-01-04T00:00:00Z'
@@ -60,6 +64,7 @@ export const mockUsers: User[] = [
     role: 'user',
     avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
     phone: '+994501234571',
+    position: 'Hesabdar',
     isActive: true,
     createdAt: '2024-01-05T00:00:00Z',
     updatedAt: '2024-01-05T00:00:00Z'

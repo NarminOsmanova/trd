@@ -5,7 +5,7 @@ export const transactionFormSchema = z.object({
     .string()
     .min(1, 'Layihə seçilməlidir'),
   type: z
-    .enum(['income', 'expense'], {
+    .enum(['income', 'expense', 'transfer', 'topup'], {
       required_error: 'Əməliyyat növü seçilməlidir'
     }),
   category: z
@@ -22,11 +22,16 @@ export const transactionFormSchema = z.object({
   date: z
     .string()
     .min(1, 'Tarix seçilməlidir')
-});
+}).and(z.object({
+  currency: z.enum(['AZN','USD','EUR']).default('AZN'),
+  source: z.enum(['cash','bank','partner','own']).optional(),
+  receiptUrl: z.string().optional(),
+  toProjectId: z.string().optional(),
+}));
 
 export const transactionFiltersSchema = z.object({
   searchTerm: z.string().optional(),
-  type: z.enum(['income', 'expense']).optional(),
+  type: z.enum(['income', 'expense','transfer','topup']).optional(),
   category: z.string().optional(),
   projectId: z.string().optional(),
   startDate: z.string().optional(),

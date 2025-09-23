@@ -328,7 +328,9 @@ export default function TransactionsTable({
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                       transaction.type === 'income' 
                         ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
+                        : transaction.type === 'expense'
+                        ? 'bg-red-100 text-red-800'
+                        : 'bg-blue-100 text-blue-800'
                     }`}>
                       {getTransactionTypeLabel(transaction.type)}
                     </span>
@@ -344,9 +346,9 @@ export default function TransactionsTable({
                   {/* Amount */}
                   <TableCell>
                     <div className={`text-sm font-medium ${
-                      transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                      transaction.type === 'income' ? 'text-green-600' : transaction.type === 'expense' ? 'text-red-600' : 'text-blue-600'
                     }`}>
-                      {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                      {transaction.type === 'income' ? '+' : transaction.type === 'expense' ? '-' : ''}{formatCurrency(transaction.amount)} {transaction.currency || 'AZN'}
                     </div>
                   </TableCell>
 

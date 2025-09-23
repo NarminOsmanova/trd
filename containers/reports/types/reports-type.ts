@@ -2,8 +2,9 @@ export interface ReportFilters {
   startDate?: string;
   endDate?: string;
   projectId?: string;
-  reportType?: 'overview' | 'detailed' | 'comparison';
+  reportType?: 'overview' | 'byProject' | 'byUser' | 'byType';
   userId?: string;
+  type?: 'income' | 'expense' | 'transfer' | 'topup';
 }
 
 export interface ReportStats {

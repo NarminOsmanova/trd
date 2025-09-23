@@ -20,7 +20,7 @@ export interface RecentTransaction {
   id: string;
   projectId: string;
   userId: string;
-  type: 'income' | 'expense';
+  type: 'income' | 'expense' | 'transfer' | 'topup';
   amount: number;
   date: string;
   description?: string;
