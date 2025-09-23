@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "TRD - Layihə İdarəetmə və Xərclərin Hesabat Sistemi",
+  title: "Report - Layihə İdarəetmə və Xərclərin Hesabat Sistemi",
   description: "Layihə idarəetməsi və xərclərin hesabat sistemi",
 };
 

@@ -26,6 +26,7 @@ export default function SettingsSidebar({
     { id: 'notifications', label: 'Bildirişlər', icon: 'Bell' },
     { id: 'preferences', label: 'Tənzimləmələr', icon: 'Globe' },
     { id: 'users', label: 'İstifadəçilər', icon: 'User' },
+    { id: 'category', label: 'Kateqoriyalar', icon: 'Category' },
     { id: 'system', label: 'Sistem', icon: 'Database' }
   ];
 

@@ -19,7 +19,7 @@ export default function DemoCredentials({ showOtp, credentials }: DemoCredential
       <h3 className="text-sm font-medium text-gray-900 mb-2">Demo Məlumatlar:</h3>
       <div className="text-xs text-gray-600 space-y-1">
         <p><strong>Admin:</strong> {credentials.admin.email} / {credentials.admin.password}</p>
-        <p><strong>İşçi:</strong> {credentials.user.email} / {credentials.user.password}</p>
+        <p><strong>Menecer:</strong> {credentials.user.email} / {credentials.user.password}</p>
         <p><strong>OTP:</strong> {credentials.otp}</p>
       </div>
     </div>

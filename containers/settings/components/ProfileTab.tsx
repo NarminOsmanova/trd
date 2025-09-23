@@ -61,7 +61,7 @@ export default function ProfileTab({ onSubmit }: ProfileTabProps) {
             <h4 className="text-lg font-medium text-gray-900">{user?.name}</h4>
             <p className="text-sm text-gray-600">{user?.email}</p>
             <p className="text-xs text-gray-500 mt-1">
-              {user?.role === 'admin' ? 'Admin' : 'İşçi'}
+              {user?.role === 'admin' ? 'Admin' : 'Menecer'}
             </p>
           </div>
         </div>

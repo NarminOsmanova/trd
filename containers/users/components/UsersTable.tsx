@@ -101,7 +101,7 @@ export default function UsersTable({
               <SelectContent>
                 <SelectItem value="all">Bütün rollar</SelectItem>
                 <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="user">İşçi</SelectItem>
+                <SelectItem value="user">Menecer</SelectItem>
               </SelectContent>
             </Select>
 
@@ -171,7 +171,7 @@ export default function UsersTable({
             <SelectContent>
               <SelectItem value="all">Bütün rollar</SelectItem>
               <SelectItem value="admin">Admin</SelectItem>
-              <SelectItem value="user">İşçi</SelectItem>
+              <SelectItem value="user">Menecer</SelectItem>
             </SelectContent>
           </Select>
 

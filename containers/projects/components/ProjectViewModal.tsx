@@ -88,7 +88,7 @@ export default function ProjectViewModal({ isOpen, onClose, project }: ProjectVi
 
           {/* Users */}
           <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-xs text-gray-600 mb-2">İşçilər</p>
+            <p className="text-xs text-gray-600 mb-2">Menecerlər</p>
             <div className="flex flex-wrap gap-1">
               {users.map(u => (
                 <Badge key={u.id} variant="outline" className="text-xs">{u.name}</Badge>
@@ -103,7 +103,7 @@ export default function ProjectViewModal({ isOpen, onClose, project }: ProjectVi
           {/* Header Row */}
           <div className="grid grid-cols-3 items-center text-xs text-gray-500 px-1 pb-2">
             <div>Əməliyyat</div>
-            <div className="text-center">İşçi</div>
+            <div className="text-center">Menecer</div>
             <div className="text-right">Məbləğ</div>
           </div>
           <div className="space-y-2 max-h-96 overflow-y-auto">

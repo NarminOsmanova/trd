@@ -47,6 +47,7 @@ export interface Transaction {
   receiptUrl?: string; // data URL or URL
   fromProjectId?: string;
   toProjectId?: string;
+  toUserId?: string;
 }
 
 export type TransactionCategory = 
@@ -89,6 +90,24 @@ export interface ProjectStat {
   expenses: number;
   remaining: number;
   transactionCount: number;
+}
+
+// Category Types
+export interface Category {
+  id: string;
+  name: string;
+  order: number;
+  type: 0 | 1; // 0 -> expense, 1 -> income
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CategoryFormData {
+  name: string;
+  order: number;
+  type: 0 | 1;
+  isActive?: boolean;
 }
 
 // Form Types

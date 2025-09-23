@@ -4,7 +4,8 @@ import {
   Transaction, 
   Notification, 
   DashboardStats,
-  TransactionCategory 
+  TransactionCategory,
+  Category
 } from '@/types';
 
 // Mock Users Data
@@ -234,6 +235,13 @@ const generateTransactions = (): Transaction[] => {
 // Mock Transactions Data
 export const mockTransactions = generateTransactions();
 
+// Mock Categories Data
+export const mockCategories: Category[] = [
+  { id: 'cat_mat', name: 'Material', order: 1, type: 0, isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { id: 'cat_salary', name: 'Maaş', order: 2, type: 0, isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+  { id: 'cat_income', name: 'Satış Gəliri', order: 1, type: 1, isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' }
+];
+
 // Mock Notifications Data
 export const mockNotifications: Notification[] = [
   {
@@ -267,7 +275,7 @@ export const mockNotifications: Notification[] = [
     id: '4',
     userId: '1',
     title: 'Yeni İstifadəçi',
-    message: 'Leyla Rəhimova sistemə yeni işçi kimi əlavə edildi.',
+    message: 'Leyla Rəhimova sistemə yeni menecer kimi əlavə edildi.',
     type: 'info',
     isRead: true,
     createdAt: '2024-01-05T12:00:00Z'
@@ -337,5 +345,10 @@ export const mockData = {
   projects: mockProjects,
   transactions: mockTransactions,
   notifications: mockNotifications,
-  dashboardStats: getDashboardStats()
+  dashboardStats: getDashboardStats(),
+  categories: mockCategories,
+  companies: [
+    { id: 'co1', title: 'TRD LLC', logoUrl: '', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+    { id: 'co2', title: 'Qrup A', logoUrl: '', isActive: true, createdAt: '2024-02-01T00:00:00Z', updatedAt: '2024-02-01T00:00:00Z' }
+  ]
 };

@@ -11,7 +11,7 @@ export default function LoginHeader() {
         <Building2 className="w-8 h-8 text-white" />
       </div>
       <h1 className="text-2xl font-bold text-gray-900 mb-2">
-        TRD Sistem
+        Report Sistem
       </h1>
       <p className="text-gray-600">
         Layihə İdarəetmə və Xərclərin Hesabat Sistemi

@@ -16,21 +16,20 @@ interface UsersManagementTabProps {
 export default function UsersManagementTab({ onCreateOrUpdate }: UsersManagementTabProps) {
   const [users, setUsers] = useState<User[]>(mockData.users);
   const [editing, setEditing] = useState<User | null>(null);
-  const [form, setForm] = useState<Partial<User & { password?: string }>>({
+  const [form, setForm] = useState<Partial<User>>({
     name: '',
     email: '',
     phone: '',
     position: '',
     role: 'user',
     isActive: true,
-    password: ''
   });
 
   const filteredUsers = useMemo(() => users, [users]);
 
   const resetForm = () => {
     setEditing(null);
-    setForm({ name: '', email: '', phone: '', position: '', role: 'user', isActive: true, password: '' });
+    setForm({ name: '', email: '', phone: '', position: '', role: 'user', isActive: true });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -107,9 +106,7 @@ export default function UsersManagementTab({ onCreateOrUpdate }: UsersManagement
               <SelectItem value="inactive">Qeyri-aktiv</SelectItem>
             </SelectContent>
           </Select>
-          {!editing && (
-            <Input placeholder="Şifrə" type="password" value={form.password || ''} onChange={(e) => setForm({ ...form, password: e.target.value })} />
-          )}
+          
         </div>
         <div className="mt-4 flex items-center gap-3">
           <Button type="submit">{editing ? 'Yenilə' : 'Əlavə et'}</Button>

@@ -14,7 +14,9 @@ import {
   LogOut,
   Building2,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Tags,
+  Building
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
@@ -25,8 +27,10 @@ const navigation = [
   { name: 'İstifadəçilər', href: '/users', icon: Users, roles: ['admin'] },
   { name: 'Əməliyyatlar', href: '/transactions', icon: Receipt, roles: ['admin', 'user'] },
   { name: 'Hesabatlar', href: '/reports', icon: BarChart3, roles: ['admin', 'user'] },
+  { name: 'Kateqoriyalar', href: '/category', icon: Tags, roles: ['admin'] },
+  { name: 'Şirkətlər', href: '/company', icon: Building, roles: ['admin'] },
   { name: 'Bildirişlər', href: '/notifications', icon: Bell, roles: ['admin', 'user'] },
-  { name: 'Tənzimləmələr', href: '/settings', icon: Settings, roles: ['admin', 'user'] },
+  { name: 'Tənzimləmələr', href: '/settings', icon: Settings, roles: ['admin'] },
 ];
 
 interface SidebarProps {
@@ -54,7 +58,7 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <Building2 className="w-5 h-5 text-white" />
             </div>
-            <span className="font-semibold text-gray-900">TRD</span>
+            <span className="font-semibold text-gray-900">REPORT</span>
           </div>
         )}
         <button
@@ -83,7 +87,7 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                 {user.name}
               </p>
               <p className="text-xs text-gray-500 truncate">
-                {user.role === 'admin' ? 'Admin' : 'İşçi'}
+                {user.role === 'admin' ? 'Admin' : 'Menecer'}
               </p>
             </div>
           </div>

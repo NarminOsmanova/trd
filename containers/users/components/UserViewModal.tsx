@@ -279,7 +279,7 @@ export default function UserViewModal({
                             <ArrowDownLeft className="w-4 h-4 text-red-600 mr-1" />
                           )}
                           <Badge variant={transaction.type === 'income' ? 'success' : 'destructive'} className="text-xs">
-                            {transaction.type === 'income' ? 'Gəlir' : 'Xərc'}
+                            {transaction.type === 'income' ? 'Mədaxil' : 'Məxaric'}
                           </Badge>
                         </div>
                       </div>

@@ -211,7 +211,7 @@ export default function UsersPage() {
                 <ShieldCheck className="w-4 h-4 text-orange-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">İşçilər</p>
+                <p className="text-sm text-gray-600">Menecerlər</p>
                 <p className="text-lg font-semibold text-gray-900">{userStats.regularUsers}</p>
               </div>
             </div>
@@ -235,7 +235,7 @@ export default function UsersPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <ShieldCheck className="w-5 h-5 text-blue-600 mr-2" />
-                  <span className="text-sm font-medium text-gray-700">İşçilər</span>
+                  <span className="text-sm font-medium text-gray-700">Menecerlər</span>
                 </div>
                 <span className="text-sm font-semibold text-gray-900">
                   {userStats.regularUsers} ({((userStats.regularUsers / userStats.totalUsers) * 100).toFixed(1)}%)

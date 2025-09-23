@@ -128,7 +128,7 @@ export default function FormComponent({
           </div>
 
           {/* Status and Dates */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Status *</Label>
               <Select onValueChange={handleStatusChange} defaultValue={watch('status')}>
@@ -146,6 +146,19 @@ export default function FormComponent({
               )}
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="targetBudget">Hədəf Büdcə</Label>
+              <Input
+                {...register('targetBudget')}
+                type="number"
+                inputMode="numeric"
+                id="targetBudget"
+                placeholder="Məs: 100000"
+              />
+              {errors.targetBudget && (
+                <p className="text-sm text-red-600">{errors.targetBudget.message as string}</p>
+              )}
+            </div>
             <div className="space-y-2">
               <Label htmlFor="startDate">Başlama Tarixi *</Label>
               <Input
@@ -168,40 +181,14 @@ export default function FormComponent({
                 <p className="text-sm text-red-600">{errors.endDate.message}</p>
               )}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="monthlyBudget">Aylıq Büdcə</Label>
-              <Input
-                {...register('monthlyBudget')}
-                type="number"
-                inputMode="numeric"
-                id="monthlyBudget"
-                placeholder="Məs: 20000"
-              />
-              {errors.monthlyBudget && (
-                <p className="text-sm text-red-600">{errors.monthlyBudget.message as string}</p>
-              )}
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="targetBudget">Hədəf Büdcə</Label>
-              <Input
-                {...register('targetBudget')}
-                type="number"
-                inputMode="numeric"
-                id="targetBudget"
-                placeholder="Məs: 100000"
-              />
-              {errors.targetBudget && (
-                <p className="text-sm text-red-600">{errors.targetBudget.message as string}</p>
-              )}
-            </div>
 
            
           </div>
 
           {/* Assigned Users & Partners */}
           <div className="space-y-2">
-            <Label>Təyin Edilmiş İşçilər *</Label>
+            <Label>Təyin Edilmiş Menecerlər *</Label>
             <div className="border border-gray-300 rounded-lg p-4 max-h-48 overflow-y-auto">
               <div className="space-y-2">
                 {mockData.users.filter(user => user.role === 'user').map((user) => (

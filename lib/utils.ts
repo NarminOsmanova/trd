@@ -234,7 +234,9 @@ export function getRoleLabel(role: string): string {
     case 'admin':
       return 'Admin';
     case 'user':
-      return 'İşçi';
+      return 'Menecer';
+    case 'partner':
+      return 'Partnyor';
     default:
       return role;
   }

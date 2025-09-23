@@ -2,7 +2,7 @@
 
 ## 📋 Layihə Haqqında
 
-TRD (Layihə İdarəetmə və Xərclərin Hesabat Sistemi) - bu, admin və işçilərin layihələrdə maliyyə əməliyyatlarını idarə etməsinə imkan verən müasir web tətbiqidir.
+TRD (Layihə İdarəetmə və Xərclərin Hesabat Sistemi) - bu, admin və menecerlərin layihələrdə maliyyə əməliyyatlarını idarə etməsinə imkan verən müasir web tətbiqidir.
 
 ## ✨ Əsas Funksionallıqlar
 
@@ -16,12 +16,12 @@ TRD (Layihə İdarəetmə və Xərclərin Hesabat Sistemi) - bu, admin və işç
 
 #### Admin
 - ✅ Yeni layihə yaradır
-- ✅ Layihəyə işçiləri əlavə edir
+- ✅ Layihəyə menecerləri əlavə edir
 - ✅ Layihənin ümumi xərclərini və qalıq büdcəsini izləyir
 - ✅ Ümumi hesabatlara baxır
 - ✅ Bütün istifadəçiləri idarə edir
 
-#### İşçi (User)
+#### Menecer (User)
 - ✅ Daxil olduğu layihədə pul əlavə edir
 - ✅ Xərc əlavə edir
 - ✅ Öz əməliyyatlarını izləyir

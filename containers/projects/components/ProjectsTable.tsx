@@ -185,7 +185,7 @@ export default function ProjectsTable({
                 </div>
               </div>
               <span className="text-xs text-gray-500">
-                {assignedUsers.length} işçi
+                {assignedUsers.length} Menecer
               </span>
             </div>
 

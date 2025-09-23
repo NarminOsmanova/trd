@@ -38,7 +38,7 @@ export const projectSchema = z.object({
     .optional(),
   assignedUsers: z
     .array(z.string())
-    .min(1, 'Ən azı bir işçi seçin')
+    .min(1, 'Ən azı bir menecer seçin')
 });
 
 // Transaction validation schema

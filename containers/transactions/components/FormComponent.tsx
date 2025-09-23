@@ -3,13 +3,7 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogFooter 
-} from '@/components/ui/dialog';
+import DialogComponent from '@/components/modals/DialogComponent';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -90,17 +84,19 @@ export default function FormComponent({
     setValue('source', value as NonNullable<TransactionFormData['source']>);
   };
 
-  const handleToProjectChange = (value: string) => {
-    setValue('toProjectId', value);
+
+  const handleToUserChange = (value: string) => {
+    setValue('toUserId', value);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-        </DialogHeader>
-        
+    <DialogComponent
+      open={isOpen}
+      setOpen={(open) => !open && handleClose()}
+      title={title}
+      size="lg"
+      maxHeight="max-h-[90vh]"
+    >
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Project */}
@@ -131,8 +127,8 @@ export default function FormComponent({
                   <SelectValue placeholder="Növ seçin" />
                 </SelectTrigger>
               <SelectContent>
-                <SelectItem value="income">Mədaxil (Gəlir)</SelectItem>
-                <SelectItem value="expense">Məxaric (Xərc)</SelectItem>
+                <SelectItem value="income">Mədaxil</SelectItem>
+                <SelectItem value="expense">Məxaric</SelectItem>
                 <SelectItem value="transfer">Transfer</SelectItem>
                 <SelectItem value="topup">Hesab artımı</SelectItem>
               </SelectContent>
@@ -144,28 +140,30 @@ export default function FormComponent({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Category */}
-            <div className="space-y-2">
-              <Label>Kateqoriya *</Label>
-              <Select onValueChange={handleCategoryChange} defaultValue={watch('category')}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Kateqoriya seçin" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="material">Material</SelectItem>
-                  <SelectItem value="salary">Maaş</SelectItem>
-                  <SelectItem value="equipment">Avadanlıq</SelectItem>
-                  <SelectItem value="transport">Nəqliyyat</SelectItem>
-                  <SelectItem value="utilities">Kommunal</SelectItem>
-                  <SelectItem value="rent">Kirayə</SelectItem>
-                  <SelectItem value="marketing">Marketinq</SelectItem>
-                  <SelectItem value="other">Digər</SelectItem>
-                </SelectContent>
-              </Select>
-              {errors.category && (
-                <p className="text-sm text-red-600">{errors.category.message}</p>
-              )}
-            </div>
+            {/* Category (hidden for transfer) */}
+            {watch('type') !== 'transfer' && (
+              <div className="space-y-2">
+                <Label>Kateqoriya *</Label>
+                <Select onValueChange={handleCategoryChange} defaultValue={watch('category')}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Kateqoriya seçin" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="material">Material</SelectItem>
+                    <SelectItem value="salary">Maaş</SelectItem>
+                    <SelectItem value="equipment">Avadanlıq</SelectItem>
+                    <SelectItem value="transport">Nəqliyyat</SelectItem>
+                    <SelectItem value="utilities">Kommunal</SelectItem>
+                    <SelectItem value="rent">Kirayə</SelectItem>
+                    <SelectItem value="marketing">Marketinq</SelectItem>
+                    <SelectItem value="other">Digər</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.category && (
+                  <p className="text-sm text-red-600">{errors.category.message}</p>
+                )}
+              </div>
+            )}
 
             {/* Amount */}
             <div className="space-y-2">
@@ -184,7 +182,7 @@ export default function FormComponent({
             </div>
           </div>
 
-        {/* Currency & Source */}
+        {/* Currency & Source/Manager (side-by-side) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>Valyuta</Label>
@@ -218,18 +216,18 @@ export default function FormComponent({
           )}
         </div>
 
-        {/* Transfer target project */}
+        {/* Transfer target manager (user) */}
         {watch('type') === 'transfer' && (
           <div className="space-y-2">
-            <Label>Hara (Layihə)</Label>
-            <Select onValueChange={handleToProjectChange} defaultValue={watch('toProjectId')}>
+            <Label>Hara (Menecer)</Label>
+            <Select onValueChange={handleToUserChange} defaultValue={watch('toUserId')}>
               <SelectTrigger>
-                <SelectValue placeholder="Layihə seçin" />
+                <SelectValue placeholder="Menecer seçin" />
               </SelectTrigger>
               <SelectContent>
-                {mockData.projects.map(project => (
-                  <SelectItem key={project.id} value={project.id}>
-                    {project.name}
+                {mockData.users.filter(u => u.role === 'user').map(user => (
+                  <SelectItem key={user.id} value={user.id}>
+                    {user.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -281,23 +279,11 @@ export default function FormComponent({
             </div>
           </div>
 
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleClose}
-            >
-              Ləğv Et
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Saxlanılır...' : 'Saxla'}
-            </Button>
-          </DialogFooter>
+          <div className="flex items-center justify-end gap-2">
+            <Button type="button" variant="outline" onClick={handleClose}>Ləğv Et</Button>
+            <Button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Saxlanılır...' : 'Saxla'}</Button>
+          </div>
         </form>
-      </DialogContent>
-    </Dialog>
+    </DialogComponent>
   );
 }

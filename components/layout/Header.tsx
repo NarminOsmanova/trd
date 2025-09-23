@@ -54,7 +54,7 @@ export default function Header({ title, subtitle }: HeaderProps) {
               <div className="flex items-center space-x-3">
                 <div className="text-right hidden sm:block">
                   <p className="text-sm font-medium text-gray-900 truncate max-w-32">{user?.name}</p>
-                  <p className="text-xs text-gray-500">{user?.role === 'admin' ? 'Admin' : 'İşçi'}</p>
+                  <p className="text-xs text-gray-500">{user?.role === 'admin' ? 'Admin' : 'Menecer'}</p>
                 </div>
                 <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                   <User className="w-4 h-4 text-blue-600" />
@@ -126,7 +126,7 @@ export default function Header({ title, subtitle }: HeaderProps) {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 truncate">{user?.name}</p>
-              <p className="text-xs text-gray-500">{user?.role === 'admin' ? 'Admin' : 'İşçi'}</p>
+              <p className="text-xs text-gray-500">{user?.role === 'admin' ? 'Admin' : 'Menecer'}</p>
             </div>
           </div>
         </div>

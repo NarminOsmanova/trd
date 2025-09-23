@@ -133,7 +133,7 @@ export default function FormComponent({
                   <SelectValue placeholder="Rol seçin" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="user">İşçi</SelectItem>
+                  <SelectItem value="user">Menecer</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
                 </SelectContent>
               </Select>

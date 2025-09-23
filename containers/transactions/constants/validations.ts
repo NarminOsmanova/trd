@@ -27,6 +27,7 @@ export const transactionFormSchema = z.object({
   source: z.enum(['cash','bank','partner','own']).optional(),
   receiptUrl: z.string().optional(),
   toProjectId: z.string().optional(),
+  toUserId: z.string().optional(),
 }));
 
 export const transactionFiltersSchema = z.object({

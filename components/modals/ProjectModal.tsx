@@ -194,7 +194,7 @@ export default function ProjectModal({
           {/* Assigned Users */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Təyin Edilmiş İşçilər *
+              Təyin Edilmiş Menecerlər *
             </label>
             <div className="border border-gray-300 rounded-lg p-4 max-h-48 overflow-y-auto">
               <div className="space-y-2">
