@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useTranslations } from 'next-intl';
 import DialogComponent from '@/components/modals/DialogComponent';
 import { Badge } from '@/components/ui/badge';
 import { getTransactionsByProject, getUsersByProject, getUserById } from '@/lib/mock-data';
@@ -26,6 +27,8 @@ interface ProjectViewModalProps {
 }
 
 export default function ProjectViewModal({ isOpen, onClose, project }: ProjectViewModalProps) {
+  const t = useTranslations();
+  
   if (!isOpen || !project) return null;
 
   const users = getUsersByProject(project.id);
@@ -43,19 +46,19 @@ export default function ProjectViewModal({ isOpen, onClose, project }: ProjectVi
         {/* Compact Summary */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-xs text-gray-600 mb-1">Status</p>
+            <p className="text-xs text-gray-600 mb-1">{t('projects.projectStatus')}</p>
             <Badge variant="secondary" className="text-xs">{project.status}</Badge>
           </div>
           <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-xs text-gray-600 mb-1">Başlama</p>
+            <p className="text-xs text-gray-600 mb-1">{t('projects.projectStart')}</p>
             <p className="text-sm font-medium">{formatDate(project.startDate)}</p>
           </div>
           <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-xs text-gray-600 mb-1">Bitmə</p>
+            <p className="text-xs text-gray-600 mb-1">{t('projects.projectEnd')}</p>
             <p className="text-sm font-medium">{project.endDate ? formatDate(project.endDate) : '-'}</p>
           </div>
           <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-xs text-gray-600 mb-1">Hədəf Büdcə</p>
+            <p className="text-xs text-gray-600 mb-1">{t('projects.projectTargetBudget')}</p>
             <p className="text-sm font-medium">{project.targetBudget ? formatCurrency(project.targetBudget) : '-'}</p>
           </div>
         </div>
@@ -63,15 +66,15 @@ export default function ProjectViewModal({ isOpen, onClose, project }: ProjectVi
         {/* Budget Summary */}
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-blue-50 rounded-lg p-3 text-center">
-            <p className="text-xs text-gray-600 mb-1">Toplam Büdcə</p>
+            <p className="text-xs text-gray-600 mb-1">{t('projects.projectTotalBudget')}</p>
             <p className="text-lg font-bold text-blue-600">{formatCurrency(project.budget)}</p>
           </div>
           <div className="bg-red-50 rounded-lg p-3 text-center">
-            <p className="text-xs text-gray-600 mb-1">Xərclər</p>
+            <p className="text-xs text-gray-600 mb-1">{t('projects.projectExpenses')}</p>
             <p className="text-lg font-bold text-red-600">{formatCurrency(project.totalExpenses)}</p>
           </div>
           <div className="bg-green-50 rounded-lg p-3 text-center">
-            <p className="text-xs text-gray-600 mb-1">Qalıq Büdcə</p>
+            <p className="text-xs text-gray-600 mb-1">{t('projects.projectRemainingBudget')}</p>
             <p className="text-lg font-bold text-green-600">{formatCurrency(project.remainingBudget)}</p>
           </div>
         </div>
@@ -81,14 +84,14 @@ export default function ProjectViewModal({ isOpen, onClose, project }: ProjectVi
           {/* Description */}
           {project.description && (
             <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-xs text-gray-600 mb-2">Təsvir</p>
+              <p className="text-xs text-gray-600 mb-2">{t('projects.projectDescription')}</p>
               <p className="text-sm text-gray-800">{project.description}</p>
             </div>
           )}
 
           {/* Users */}
           <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-xs text-gray-600 mb-2">Menecerlər</p>
+            <p className="text-xs text-gray-600 mb-2">{t('projects.projectManagers')}</p>
             <div className="flex flex-wrap gap-1">
               {users.map(u => (
                 <Badge key={u.id} variant="outline" className="text-xs">{u.name}</Badge>
@@ -99,21 +102,21 @@ export default function ProjectViewModal({ isOpen, onClose, project }: ProjectVi
 
         {/* Transactions */}
         <div className="bg-gray-50 rounded-lg p-3">
-          <p className="text-sm font-medium text-gray-700 mb-3">Əməliyyatlar</p>
+          <p className="text-sm font-medium text-gray-700 mb-3">{t('projects.projectTransactions')}</p>
           {/* Header Row */}
           <div className="grid grid-cols-3 items-center text-xs text-gray-500 px-1 pb-2">
-            <div>Əməliyyat</div>
-            <div className="text-center">Menecer</div>
-            <div className="text-right">Məbləğ</div>
+            <div>{t('projects.transaction')}</div>
+            <div className="text-center">{t('projects.manager')}</div>
+            <div className="text-right">{t('common.amount')}</div>
           </div>
           <div className="space-y-2 max-h-96 overflow-y-auto">
-            {transactions.map(t => {
-              const user = getUserById(t.userId);
+            {transactions.map(transaction => {
+              const user = getUserById(transaction.userId);
               return (
-                <div key={t.id} className="bg-white rounded-lg p-3 grid grid-cols-3 items-center gap-2">
+                <div key={transaction.id} className="bg-white rounded-lg p-3 grid grid-cols-3 items-center gap-2">
                   <div>
-                    <p className="text-sm font-medium mb-1">{t.description || (t.type === 'income' ? 'Daxilolma' : 'Xərc')}</p>
-                    <div className="text-xs text-gray-500">{formatDate(t.date)} </div>
+                    <p className="text-sm font-medium mb-1">{transaction.description || (transaction.type === 'income' ? t('projects.income') : t('projects.expense'))}</p>
+                    <div className="text-xs text-gray-500">{formatDate(transaction.date)} </div>
                   </div>
                   <div className="text-center">
                     {user && (
@@ -122,14 +125,14 @@ export default function ProjectViewModal({ isOpen, onClose, project }: ProjectVi
                       </span>
                     )}
                   </div>
-                  <div className={`text-sm font-semibold text-right ${t.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                    {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
+                  <div className={`text-sm font-semibold text-right ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                    {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
                   </div>
                 </div>
               );
             })}
             {transactions.length === 0 && (
-              <p className="text-sm text-gray-500 py-4 text-center">Əməliyyat yoxdur</p>
+              <p className="text-sm text-gray-500 py-4 text-center">{t('projects.noTransactions')}</p>
             )}
           </div>
         </div>

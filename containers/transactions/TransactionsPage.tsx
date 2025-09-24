@@ -43,8 +43,8 @@ export default function TransactionsPage() {
       const user = mockData.users.find(u => u.id === transaction.userId);
       
       const matchesSearch = !filters.searchTerm || 
-        project?.name.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
-        user?.name.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
+        project?.name?.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
+        user?.name?.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
         transaction.description?.toLowerCase().includes(filters.searchTerm.toLowerCase());
       
       const matchesType = !filters.type || transaction.type === filters.type;

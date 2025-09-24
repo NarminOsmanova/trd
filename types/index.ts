@@ -1,13 +1,13 @@
 // User Types
 export interface User {
   id: string;
-  email: string;
-  name: string;
+  email?: string;
+  name?: string;
   role: 'admin' | 'user' | 'partner';
   avatar?: string;
-  phone?: string;
+  phone: string;
   position?: string;
-  isActive: boolean;
+  isActive?: boolean;
   createdAt: string;
   updatedAt: string;
 }

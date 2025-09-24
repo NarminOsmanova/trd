@@ -20,8 +20,9 @@ export interface ProjectFormData {
   status: 'active' | 'completed' | 'paused';
   startDate: string;
   endDate?: string;
-  assignedUsers: string[];
+  assignedUsers?: string[];
   targetBudget?: number;
+  monthlyBudget?: number;
 }
 
 export interface ProjectFilters {

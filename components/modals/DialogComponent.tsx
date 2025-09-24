@@ -10,6 +10,7 @@ import {
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "next-intl";
 
 interface DialogComponentProps {
   open: boolean;
@@ -64,6 +65,7 @@ const DialogComponent: React.FC<DialogComponentProps> = ({
   loading = false,
   disabled = false,
 }) => {
+  const t = useTranslations();
   const handleOpenChange = (newOpen: boolean) => {
     if (disabled || loading) return;
     
@@ -126,7 +128,7 @@ const DialogComponent: React.FC<DialogComponentProps> = ({
                   className="h-8 w-8 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
                 >
                   <X className="h-4 w-4" />
-                  <span className="sr-only">Bağla</span>
+                  <span className="sr-only">{t('common.close')}</span>
                 </Button>
               )}
             </div>
@@ -144,7 +146,7 @@ const DialogComponent: React.FC<DialogComponentProps> = ({
                 <div className="flex items-center justify-center py-12">
                   <div className="flex flex-col items-center space-y-4">
                     <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-gray-600 dark:text-gray-400">Yüklənir...</p>
+                    <p className="text-gray-600 dark:text-gray-400">{t('common.loading')}</p>
                   </div>
                 </div>
               ) : (

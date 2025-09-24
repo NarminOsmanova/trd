@@ -17,12 +17,8 @@ export default function UsersManagementTab({ onCreateOrUpdate }: UsersManagement
   const [users, setUsers] = useState<User[]>(mockData.users);
   const [editing, setEditing] = useState<User | null>(null);
   const [form, setForm] = useState<Partial<User>>({
-    name: '',
-    email: '',
     phone: '',
-    position: '',
     role: 'user',
-    isActive: true,
   });
 
   const filteredUsers = useMemo(() => users, [users]);
@@ -39,12 +35,8 @@ export default function UsersManagementTab({ onCreateOrUpdate }: UsersManagement
     if (editing) {
       const updated: User = {
         ...editing,
-        name: form.name!,
-        email: form.email!,
-        phone: form.phone,
-        position: form.position,
+        phone: form.phone || '',
         role: form.role as User['role'],
-        isActive: !!form.isActive,
         updatedAt: new Date().toISOString(),
       };
       setUsers(prev => prev.map(u => u.id === updated.id ? updated : u));
@@ -52,12 +44,9 @@ export default function UsersManagementTab({ onCreateOrUpdate }: UsersManagement
     } else {
       const created: User = {
         id: Math.random().toString(36).slice(2, 9),
-        name: form.name!,
-        email: form.email!,
-        phone: form.phone,
-        position: form.position,
+       
+        phone: form.phone || '',
         role: (form.role as User['role']) ?? 'user',
-        isActive: !!form.isActive,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -70,12 +59,8 @@ export default function UsersManagementTab({ onCreateOrUpdate }: UsersManagement
   const startEdit = (u: User) => {
     setEditing(u);
     setForm({
-      name: u.name,
-      email: u.email,
       phone: u.phone,
-      position: u.position,
       role: u.role,
-      isActive: u.isActive,
     });
   };
 
@@ -87,26 +72,14 @@ export default function UsersManagementTab({ onCreateOrUpdate }: UsersManagement
           {editing ? 'İstifadəçini Yenilə' : 'Yeni İstifadəçi Əlavə Et'}
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Input placeholder="Ad Soyad" value={form.name || ''} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          <Input placeholder="Email" type="email" value={form.email || ''} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           <Input placeholder="Telefon (+994...)" value={form.phone || ''} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-          <Input placeholder="Vəzifə" value={form.position || ''} onChange={(e) => setForm({ ...form, position: e.target.value })} />
           <Select value={(form.role as string) || 'user'} onValueChange={(v) => setForm({ ...form, role: v as User['role'] })}>
             <SelectTrigger><SelectValue placeholder="Rol" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="admin">Admin</SelectItem>
               <SelectItem value="user">Əməkdaş</SelectItem>
               <SelectItem value="partner">Partnyor</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={form.isActive ? 'active' : 'inactive'} onValueChange={(v) => setForm({ ...form, isActive: v === 'active' })}>
-            <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="active">Aktiv</SelectItem>
-              <SelectItem value="inactive">Qeyri-aktiv</SelectItem>
-            </SelectContent>
-          </Select>
-          
         </div>
         <div className="mt-4 flex items-center gap-3">
           <Button type="submit">{editing ? 'Yenilə' : 'Əlavə et'}</Button>

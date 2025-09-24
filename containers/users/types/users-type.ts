@@ -1,11 +1,11 @@
 export interface User {
   id: string;
-  name: string;
-  email: string;
+  name?: string;
+  email?: string;
   phone?: string;
   position?: string;
   role: 'admin' | 'user' | 'partner';
-  isActive: boolean;
+  isActive?: boolean;
   createdAt: string;
   updatedAt: string;
   avatar?: string;

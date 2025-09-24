@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { 
   LayoutDashboard, 
   FolderOpen, 
@@ -22,15 +23,15 @@ import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['admin', 'user'] },
-  { name: 'Layihələr', href: '/projects', icon: FolderOpen, roles: ['admin', 'user'] },
-  { name: 'İstifadəçilər', href: '/users', icon: Users, roles: ['admin'] },
-  { name: 'Əməliyyatlar', href: '/transactions', icon: Receipt, roles: ['admin', 'user'] },
-  { name: 'Hesabatlar', href: '/reports', icon: BarChart3, roles: ['admin', 'user'] },
-  { name: 'Kateqoriyalar', href: '/category', icon: Tags, roles: ['admin'] },
-  { name: 'Şirkətlər', href: '/company', icon: Building, roles: ['admin'] },
-  { name: 'Bildirişlər', href: '/notifications', icon: Bell, roles: ['admin', 'user'] },
-  { name: 'Tənzimləmələr', href: '/settings', icon: Settings, roles: ['admin'] },
+  { nameKey: 'sidebar.dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['admin', 'user'] },
+  { nameKey: 'sidebar.projects', href: '/projects', icon: FolderOpen, roles: ['admin', 'user'] },
+  { nameKey: 'sidebar.users', href: '/users', icon: Users, roles: ['admin'] },
+  { nameKey: 'sidebar.transactions', href: '/transactions', icon: Receipt, roles: ['admin', 'user'] },
+  { nameKey: 'sidebar.reports', href: '/reports', icon: BarChart3, roles: ['admin', 'user'] },
+  { nameKey: 'sidebar.category', href: '/category', icon: Tags, roles: ['admin'] },
+  { nameKey: 'sidebar.company', href: '/company', icon: Building, roles: ['admin'] },
+  { nameKey: 'sidebar.notifications', href: '/notifications', icon: Bell, roles: ['admin', 'user'] },
+  { nameKey: 'sidebar.settings', href: '/settings', icon: Settings, roles: ['admin'] },
 ];
 
 interface SidebarProps {
@@ -41,6 +42,7 @@ interface SidebarProps {
 export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const t = useTranslations();
 
   const handleLogout = () => {
     logout();
@@ -79,15 +81,15 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
               <span className="text-sm font-medium text-blue-600">
-                {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                {user?.name?.split(' ').map(n => n[0]).join('').toUpperCase()}
               </span>
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 truncate">
-                {user.name}
+                {user?.name}
               </p>
               <p className="text-xs text-gray-500 truncate">
-                {user.role === 'admin' ? 'Admin' : 'Menecer'}
+                {user.role === 'admin' ? t('sidebar.admin') : t('sidebar.manager')}
               </p>
             </div>
           </div>
@@ -100,9 +102,10 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
           .filter(item => item.roles.includes(user?.role || 'user'))
           .map((item) => {
             const isActive = pathname === item.href;
+            const itemName = t(item.nameKey);
             return (
               <Link
-                key={item.name}
+                key={item.nameKey}
                 href={item.href}
                 className={cn(
                   "flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors group",
@@ -110,13 +113,13 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                     ? "bg-blue-50 text-blue-700 border-r-2 border-blue-600"
                     : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
                 )}
-                title={isCollapsed ? item.name : undefined}
+                title={isCollapsed ? itemName : undefined}
               >
                 <item.icon className={cn(
                   "flex-shrink-0",
                   isCollapsed ? "w-5 h-5" : "w-5 h-5 mr-3"
                 )} />
-                {!isCollapsed && <span>{item.name}</span>}
+                {!isCollapsed && <span>{itemName}</span>}
               </Link>
             );
           })}
@@ -130,13 +133,13 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
             "flex items-center w-full px-3 py-2 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors group",
             isCollapsed && "justify-center"
           )}
-          title={isCollapsed ? 'Çıxış' : undefined}
+          title={isCollapsed ? t('sidebar.logout') : undefined}
         >
           <LogOut className={cn(
             "flex-shrink-0",
             isCollapsed ? "w-5 h-5" : "w-5 h-5 mr-3"
           )} />
-          {!isCollapsed && <span>Çıxış</span>}
+          {!isCollapsed && <span>{t('sidebar.logout')}</span>}
         </button>
       </div>
     </div>

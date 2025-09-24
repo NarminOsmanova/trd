@@ -32,8 +32,8 @@ export default function UsersPage() {
   const filteredUsers = useMemo(() => {
     return users.filter(user => {
       const matchesSearch = !filters.searchTerm || 
-        user.name.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(filters.searchTerm.toLowerCase());
+        user.name?.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
+        user.email?.toLowerCase().includes(filters.searchTerm.toLowerCase());
       
       const matchesRole = !filters.role || user.role === filters.role;
       

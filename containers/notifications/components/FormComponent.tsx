@@ -139,7 +139,7 @@ export default function FormComponent({
               <SelectContent>
                 {mockData.users.map((user) => (
                   <SelectItem key={user.id} value={user.id}>
-                    {user.name} ({user.email})
+                    {user?.name} ({user?.email})
                   </SelectItem>
                 ))}
               </SelectContent>

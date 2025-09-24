@@ -8,9 +8,8 @@ export const transactionFormSchema = z.object({
     .enum(['income', 'expense', 'transfer', 'topup'], {
       required_error: 'Əməliyyat növü seçilməlidir'
     }),
-  category: z
-    .string()
-    .min(1, 'Kateqoriya seçilməlidir'),
+  // Category becomes optional; UI will enforce when required by flow
+  category: z.string().optional(),
   amount: z
     .number()
     .min(0.01, 'Məbləğ 0-dan böyük olmalıdır')

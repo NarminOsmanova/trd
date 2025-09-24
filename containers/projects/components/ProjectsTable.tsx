@@ -11,6 +11,7 @@ import {
   DollarSign,
   FolderOpen
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { Project } from '../types/projects-type';
 import { formatCurrency, formatDate, getStatusColor, getStatusLabel, getInitials } from '@/lib/utils';
 import { mockData } from '@/lib/mock-data';
@@ -39,6 +40,7 @@ export default function ProjectsTable({
   onEditProject,
   onDeleteProject
 }: ProjectsTableProps) {
+  const t = useTranslations();
   
   // Add pagination
   const pagination = usePagination({ 
@@ -60,10 +62,10 @@ export default function ProjectsTable({
             <FolderOpen className="w-8 h-8 text-gray-400" />
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Layihə tapılmadı
+            {t('projects.noProjectsFound')}
           </h3>
           <p className="text-gray-600">
-            Axtarış meyarlarına uyğun layihə yoxdur
+            {t('projects.noProjectsMessage')}
           </p>
         </div>
       </div>
@@ -93,7 +95,7 @@ export default function ProjectsTable({
                     {project.name}
                   </h3>
                   <p className="text-sm text-gray-600 line-clamp-2">
-                    {project.description || 'Təsvir yoxdur'}
+                    {project.description || t('projects.noDescription')}
                   </p>
                 </div>
               </div>
@@ -104,7 +106,7 @@ export default function ProjectsTable({
                 <Button
                   variant="ghost"
                   size="icon"
-                  title="Daha çox"
+                  title={t('projects.more')}
                 >
                   <MoreVertical className="w-4 h-4" />
                 </Button>
@@ -114,15 +116,15 @@ export default function ProjectsTable({
             {/* Project Stats */}
             <div className="space-y-3 mb-4">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Ümumi Büdcə:</span>
+                <span className="text-gray-600">{t('projects.totalBudget')}:</span>
                 <span className="font-medium text-gray-900">{formatCurrency(project.budget)}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Xərclər:</span>
+                <span className="text-gray-600">{t('projects.expenses')}:</span>
                 <span className="font-medium text-red-600">{formatCurrency(project.totalExpenses)}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">Qalıq:</span>
+                <span className="text-gray-600">{t('projects.remaining')}:</span>
                 <span className="font-medium text-green-600">{formatCurrency(project.remainingBudget)}</span>
               </div>
             </div>
@@ -130,7 +132,7 @@ export default function ProjectsTable({
             {/* Progress Bar */}
             <div className="mb-4">
               <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
-                <span>İstifadə edilib</span>
+                <span>{t('projects.used')}</span>
                 <span>{progressPercentage}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
@@ -171,7 +173,7 @@ export default function ProjectsTable({
                       title={user.name}
                     >
                       <span className="text-xs font-medium text-gray-600">
-                        {getInitials(user.name)}
+                        {getInitials(user?.name || '')}
                       </span>
                     </div>
                   ))}
@@ -185,7 +187,7 @@ export default function ProjectsTable({
                 </div>
               </div>
               <span className="text-xs text-gray-500">
-                {assignedUsers.length} Menecer
+                {assignedUsers.length} {t('projects.managers')}
               </span>
             </div>
 
@@ -198,7 +200,7 @@ export default function ProjectsTable({
                   onClick={() => onViewProject(project.id)}
                 >
                   <Eye className="w-3 h-3 mr-1" />
-                  Baxış
+                  {t('projects.view')}
                 </Button>
                 <Button
                   variant="outline"
@@ -206,7 +208,7 @@ export default function ProjectsTable({
                   onClick={() => onEditProject(project)}
                 >
                   <Edit className="w-3 h-3 mr-1" />
-                  Redaktə
+                  {t('projects.edit')}
                 </Button>
               </div>
               <Button

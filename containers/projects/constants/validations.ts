@@ -25,8 +25,7 @@ export const projectFormSchema = z.object({
   monthlyBudget: z
     .preprocess((v) => (v === '' || v === undefined || v === null ? undefined : Number(v)), z.number().positive('Müsbət rəqəm olmalıdır').optional()),
   assignedUsers: z
-    .array(z.string())
-    .min(1, 'Ən azı bir menecer seçin')
+    .array(z.string()).optional()
 });
 
 export const projectFiltersSchema = z.object({

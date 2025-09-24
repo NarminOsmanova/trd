@@ -9,6 +9,7 @@ import {
   Users,
   DollarSign
 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -20,6 +21,7 @@ import FormComponent from './components/FormComponent';
 import ProjectViewModal from './components/ProjectViewModal';
 
 export default function ProjectsPage() {
+  const t = useTranslations();
   const [projects] = useState<Project[]>(mockData.projects);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -123,7 +125,7 @@ export default function ProjectsPage() {
               </div>
               <Input
                 type="text"
-                placeholder="Layihə axtar..."
+                placeholder={t('projects.searchPlaceholder')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -133,13 +135,13 @@ export default function ProjectsPage() {
             {/* Status Filter */}
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Status seçin" />
+                <SelectValue placeholder={t('projects.selectStatus')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Bütün statuslar</SelectItem>
-                <SelectItem value="active">Aktiv</SelectItem>
-                <SelectItem value="completed">Tamamlandı</SelectItem>
-                <SelectItem value="paused">Dayandırılıb</SelectItem>
+                <SelectItem value="all">{t('projects.allStatuses')}</SelectItem>
+                <SelectItem value="active">{t('common.active')}</SelectItem>
+                <SelectItem value="completed">{t('common.completed')}</SelectItem>
+                <SelectItem value="paused">{t('common.paused')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -147,7 +149,7 @@ export default function ProjectsPage() {
           {/* Add Project Button */}
           <Button onClick={handleCreateProject}>
             <Plus className="w-5 h-5 mr-2" />
-            Yeni Layihə
+            {t('projects.newProject')}
           </Button>
         </div>
 
@@ -156,7 +158,7 @@ export default function ProjectsPage() {
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-blue-900">
-                {selectedProjects.length} layihə seçilib
+                {selectedProjects.length} {t('projects.projectsSelected')}
               </span>
               <div className="flex items-center space-x-2">
                 <Button
@@ -165,14 +167,14 @@ export default function ProjectsPage() {
                   onClick={handleBulkDelete}
                   className="text-red-600 border-red-200 hover:bg-red-50"
                 >
-                  Sil
+                  {t('projects.delete')}
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setSelectedProjects([])}
                 >
-                  Ləğv Et
+                  {t('projects.cancel')}
                 </Button>
               </div>
             </div>
@@ -198,7 +200,7 @@ export default function ProjectsPage() {
                 <FolderOpen className="w-4 h-4 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Ümumi Layihələr</p>
+                <p className="text-sm text-gray-600">{t('projects.totalProjects')}</p>
                 <p className="text-lg font-semibold text-gray-900">{totalProjects}</p>
               </div>
             </div>
@@ -210,7 +212,7 @@ export default function ProjectsPage() {
                 <Users className="w-4 h-4 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Aktiv Layihələr</p>
+                <p className="text-sm text-gray-600">{t('projects.activeProjects')}</p>
                 <p className="text-lg font-semibold text-green-600">{activeProjects}</p>
               </div>
             </div>
@@ -222,7 +224,7 @@ export default function ProjectsPage() {
                 <DollarSign className="w-4 h-4 text-purple-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Ümumi Büdcə</p>
+                <p className="text-sm text-gray-600">{t('projects.totalBudget')}</p>
                 <p className="text-lg font-semibold text-gray-900">
                   {totalBudget.toLocaleString()} AZN
                 </p>
@@ -236,7 +238,7 @@ export default function ProjectsPage() {
                 <Calendar className="w-4 h-4 text-orange-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Tamamlandı</p>
+                <p className="text-sm text-gray-600">{t('projects.completedProjects')}</p>
                 <p className="text-lg font-semibold text-orange-600">{completedProjects}</p>
               </div>
             </div>
@@ -249,7 +251,7 @@ export default function ProjectsPage() {
         isOpen={isFormOpen}
         onClose={handleCloseForm}
         onSubmit={handleFormSubmit}
-        title={editingProject ? 'Layihəni Redaktə Et' : 'Yeni Layihə Yarat'}
+        title={editingProject ? t('projects.editProject') : t('projects.createProject')}
         initialData={editingProject ? {
           name: editingProject.name,
           description: editingProject.description,

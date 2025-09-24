@@ -47,7 +47,7 @@ export default function ProfileTab({ onSubmit }: ProfileTabProps) {
         <div className="flex items-center space-x-6 mb-8">
           <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center relative">
             <span className="text-2xl font-medium text-blue-600">
-              {user?.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+              {user?.name?.split(' ').map(n => n[0]).join('').toUpperCase()}
             </span>
             <button 
               title="Change Profile Picture" 

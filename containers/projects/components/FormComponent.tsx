@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslations } from 'next-intl';
 import { 
   Dialog, 
   DialogContent, 
@@ -34,7 +35,7 @@ export default function FormComponent({
   title,
   initialData
 }: FormComponentProps) {
-  
+  const t = useTranslations();
   const [selectedUsers, setSelectedUsers] = useState<string[]>(initialData?.assignedUsers || []);
   
   const {
@@ -102,11 +103,11 @@ export default function FormComponent({
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
           {/* Project Name */}
           <div className="space-y-2">
-            <Label htmlFor="name">Layihə Adı *</Label>
+            <Label htmlFor="name">{t('projects.projectName')} (Az, Ru, En) *</Label>
             <Input
               {...register('name')}
               id="name"
-              placeholder="Layihə adını daxil edin"
+              placeholder={t('projects.projectName')}
             />
             {errors.name && (
               <p className="text-sm text-red-600">{errors.name.message}</p>
@@ -115,12 +116,12 @@ export default function FormComponent({
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description">Təsvir</Label>
+            <Label htmlFor="description">{t('common.description')} (Az, Ru, En)</Label>
             <Textarea
               {...register('description')}
               id="description"
               rows={3}
-              placeholder="Layihə haqqında ətraflı məlumat..."
+              placeholder={t('common.description')}
             />
             {errors.description && (
               <p className="text-sm text-red-600">{errors.description.message}</p>
@@ -129,38 +130,22 @@ export default function FormComponent({
 
           {/* Status and Dates */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+         
             <div className="space-y-2">
-              <Label>Status *</Label>
-              <Select onValueChange={handleStatusChange} defaultValue={watch('status')}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Status seçin" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Aktiv</SelectItem>
-                  <SelectItem value="completed">Tamamlandı</SelectItem>
-                  <SelectItem value="paused">Dayandırılıb</SelectItem>
-                </SelectContent>
-              </Select>
-              {errors.status && (
-                <p className="text-sm text-red-600">{errors.status.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="targetBudget">Hədəf Büdcə</Label>
+              <Label htmlFor="targetBudget">{t('projects.targetBudget')}</Label>
               <Input
                 {...register('targetBudget')}
                 type="number"
                 inputMode="numeric"
                 id="targetBudget"
-                placeholder="Məs: 100000"
+                placeholder="100000"
               />
               {errors.targetBudget && (
                 <p className="text-sm text-red-600">{errors.targetBudget.message as string}</p>
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="startDate">Başlama Tarixi *</Label>
+              <Label htmlFor="startDate">{t('projects.startDate')} *</Label>
               <Input
                 {...register('startDate')}
                 type="date"
@@ -171,7 +156,7 @@ export default function FormComponent({
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="endDate">Bitmə Tarixi</Label>
+              <Label htmlFor="endDate">{t('projects.endDate')}</Label>
               <Input
                 {...register('endDate')}
                 type="date"
@@ -188,7 +173,7 @@ export default function FormComponent({
 
           {/* Assigned Users & Partners */}
           <div className="space-y-2">
-            <Label>Təyin Edilmiş Menecerlər *</Label>
+            <Label>{t('projects.assignedUsers')}</Label>
             <div className="border border-gray-300 rounded-lg p-4 max-h-48 overflow-y-auto">
               <div className="space-y-2">
                 {mockData.users.filter(user => user.role === 'user').map((user) => (
@@ -203,7 +188,7 @@ export default function FormComponent({
                     <div className="flex items-center space-x-2">
                       <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
                         <span className="text-xs font-medium text-gray-600">
-                          {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                          {user.name?.split(' ').map(n => n[0]).join('').toUpperCase()}
                         </span>
                       </div>
                       <div>
@@ -221,7 +206,7 @@ export default function FormComponent({
           </div>
 
           <div className="space-y-2">
-            <Label>Partnyorlar</Label>
+            <Label>{t('projects.partners')}</Label>
             <div className="border border-gray-300 rounded-lg p-4 max-h-40 overflow-y-auto">
               <div className="space-y-2">
                 {mockData.users.filter(user => user.role === 'partner').map((user) => (
@@ -236,11 +221,11 @@ export default function FormComponent({
                     <div className="flex items-center space-x-2">
                       <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
                         <span className="text-xs font-medium text-gray-600">
-                          {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                          {user.name?.split(' ').map(n => n[0]).join('').toUpperCase()}
                         </span>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                        <p className="text-sm font-medium text-gray-900">{user?.name}</p>
                         <p className="text-xs text-gray-500">{user.email}</p>
                       </div>
                     </div>
@@ -248,7 +233,6 @@ export default function FormComponent({
                 ))}
               </div>
             </div>
-            <p className="text-xs text-gray-500">Partnyor seçimi opsionaldır.</p>
           </div>
 
           <DialogFooter>
@@ -257,13 +241,13 @@ export default function FormComponent({
               variant="outline"
               onClick={handleClose}
             >
-              Ləğv Et
+              {t('common.cancel')}
             </Button>
             <Button
               type="submit"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Saxlanılır...' : 'Saxla'}
+              {isSubmitting ? t('projects.saving') : t('common.save')}
             </Button>
           </DialogFooter>
         </form>

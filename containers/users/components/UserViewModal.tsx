@@ -101,7 +101,7 @@ export default function UserViewModal({
                 ) : (
                   <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center border-4 border-white shadow-lg">
                     <span className="text-white font-bold text-xl">
-                      {getInitials(user.name)}
+                      {getInitials(user?.name || '')}
                     </span>
                   </div>
                 )}
