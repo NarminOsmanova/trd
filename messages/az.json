@@ -73,7 +73,9 @@
       "paused": "Dayandırılıb",
       "pending": "Gözləyir",
       "approved": "Təsdiqləndi",
-      "rejected": "Rədd edildi"
+      "rejected": "Rədd edildi",
+      "partner": "Partnyor",
+      "admin": "Admin"
     },
     "projects": {
       "projectName": "Layihə Adı",
@@ -110,7 +112,11 @@
       "transaction": "Əməliyyat",
       "manager": "Menecer",
       "noTransactions": "Əməliyyat yoxdur",
+      "projectAccount": "Layihə Hesabı",
       "optional": "opsionaldır",
+      "budgetLimit": "Büdcə Limiti",
+      "companyAccount": "Şirkət Hesabı",
+      "transactionCount": "Əməliyyat Sayı",
       "searchPlaceholder": "Layihə axtar...",
       "selectStatus": "Status seçin",
       "allStatuses": "Bütün statuslar",

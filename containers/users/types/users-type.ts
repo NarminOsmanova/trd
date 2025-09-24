@@ -15,13 +15,13 @@ export interface UserFormData {
   name: string;
   email: string;
   phone?: string;
-  role: 'admin' | 'user';
+  role: 'admin' | 'user' | 'partner';
   isActive: boolean;
 }
 
 export interface UserFilters {
   searchTerm?: string;
-  role?: 'admin' | 'user';
+  role?: 'admin' | 'user' | 'partner';
   status?: 'active' | 'inactive';
 }
 
@@ -31,6 +31,7 @@ export interface UserStats {
   inactiveUsers: number;
   adminUsers: number;
   regularUsers: number;
+  partnerUsers: number;
 }
 
 export interface UserTransactionStats {

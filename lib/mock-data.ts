@@ -136,96 +136,122 @@ export const mockProjects: Project[] = [
   }
 ];
 
-// Helper function to generate random transactions
+// Project Account Balances (separate from budget)
+export const projectAccountBalances: Record<string, number> = {
+  '1': 0, // Yeni Bina Tikintisi - starts with 0
+  '2': 0, // Ofis Renovasiyası - starts with 0  
+  '3': 0, // Yol Tikintisi - starts with 0
+  '4': 0  // Park Təmir İşləri - starts with 0
+};
+
+// Helper function to generate realistic transactions with account balance logic
 const generateTransactions = (): Transaction[] => {
   const transactions: Transaction[] = [];
-  const categories: TransactionCategory[] = ['material', 'salary', 'equipment', 'transport', 'utilities', 'rent', 'marketing', 'other'];
+  // const categories: TransactionCategory[] = ['material', 'salary', 'equipment', 'transport', 'utilities', 'rent', 'marketing', 'other'];
   
-  // Generate income transactions (money added to projects)
-  mockProjects.forEach(project => {
-    project.assignedUsers.forEach(userId => {
-      const incomeCount = Math.floor(Math.random() * 5) + 2; // 2-6 income transactions per user per project
-      
-      for (let i = 0; i < incomeCount; i++) {
-        const date = new Date(project.startDate);
-        date.setDate(date.getDate() + Math.floor(Math.random() * 60)); // Random date within 60 days of start
-        
-        transactions.push({
-          id: `income_${project.id}_${userId}_${i}`,
-          projectId: project.id,
-          userId,
-          type: 'income',
-          amount: Math.floor(Math.random() * 50000) + 10000, // 10k-60k
-          category: categories[Math.floor(Math.random() * categories.length)],
-          description: `Vəsait əlavə edildi - ${categories[Math.floor(Math.random() * categories.length)]}`,
-          date: date.toISOString(),
-          createdAt: date.toISOString(),
-          updatedAt: date.toISOString()
-        });
-      }
+  // Create realistic transaction scenarios for each project
+  const transactionScenarios = [
+    // Project 1: Yeni Bina Tikintisi
+    {
+      projectId: '1',
+      transactions: [
+        { type: 'income', amount: 50000, description: 'İlkin vəsait', date: '2024-01-15', user: '2' },
+        { type: 'expense', amount: 15000, description: 'Tikinti materialları alındı', date: '2024-01-20', user: '2', category: 'material' },
+        { type: 'income', amount: 30000, description: 'Əlavə vəsait', date: '2024-02-01', user: '3' },
+        { type: 'expense', amount: 8000, description: 'İşçi maaşı ödəndi', date: '2024-02-05', user: '3', category: 'salary' },
+        { type: 'expense', amount: 12000, description: 'Texniki avadanlıq alındı', date: '2024-02-10', user: '4', category: 'equipment' },
+        { type: 'income', amount: 40000, description: 'Maliyyə dəstəyi', date: '2024-02-15', user: '2' },
+        { type: 'expense', amount: 5000, description: 'Nəqliyyat xərci', date: '2024-02-20', user: '3', category: 'transport' }
+      ]
+    },
+    // Project 2: Ofis Renovasiyası  
+    {
+      projectId: '2',
+      transactions: [
+        { type: 'income', amount: 25000, description: 'İlkin vəsait', date: '2024-02-01', user: '3' },
+        { type: 'expense', amount: 8000, description: 'Marketinq xərci', date: '2024-02-05', user: '3', category: 'marketing' },
+        { type: 'expense', amount: 5000, description: 'Digər xərclər', date: '2024-02-08', user: '5', category: 'other' },
+        { type: 'income', amount: 20000, description: 'Əlavə vəsait', date: '2024-02-10', user: '5' },
+        { type: 'expense', amount: 12000, description: 'İşçi maaşı ödəndi', date: '2024-02-12', user: '3', category: 'salary' },
+        { type: 'expense', amount: 15000, description: 'Tikinti materialları alındı', date: '2024-02-15', user: '5', category: 'material' }
+      ]
+    },
+    // Project 3: Yol Tikintisi
+    {
+      projectId: '3',
+      transactions: [
+        { type: 'income', amount: 100000, description: 'İlkin vəsait', date: '2024-01-01', user: '2' },
+        { type: 'expense', amount: 25000, description: 'Texniki avadanlıq alındı', date: '2024-01-05', user: '2', category: 'equipment' },
+        { type: 'income', amount: 80000, description: 'Maliyyə dəstəyi', date: '2024-01-10', user: '4' },
+        { type: 'expense', amount: 30000, description: 'Tikinti materialları alındı', date: '2024-01-15', user: '4', category: 'material' },
+        { type: 'expense', amount: 15000, description: 'İşçi maaşı ödəndi', date: '2024-01-20', user: '5', category: 'salary' },
+        { type: 'income', amount: 50000, description: 'Əlavə vəsait', date: '2024-02-01', user: '2' },
+        { type: 'expense', amount: 20000, description: 'Kommunal xidmətlər', date: '2024-02-05', user: '5', category: 'utilities' }
+      ]
+    },
+    // Project 4: Park Təmir İşləri
+    {
+      projectId: '4',
+      transactions: [
+        { type: 'income', amount: 20000, description: 'İlkin vəsait', date: '2023-11-01', user: '3' },
+        { type: 'expense', amount: 8000, description: 'Tikinti materialları alındı', date: '2023-11-05', user: '3', category: 'material' },
+        { type: 'income', amount: 15000, description: 'Əlavə vəsait', date: '2023-11-10', user: '4' },
+        { type: 'expense', amount: 5000, description: 'İşçi maaşı ödəndi', date: '2023-11-15', user: '4', category: 'salary' },
+        { type: 'expense', amount: 3000, description: 'Nəqliyyat xərci', date: '2023-11-20', user: '3', category: 'transport' },
+        { type: 'income', amount: 10000, description: 'Son vəsait', date: '2023-12-01', user: '4' },
+        { type: 'expense', amount: 12000, description: 'Texniki avadanlıq alındı', date: '2023-12-05', user: '4', category: 'equipment' }
+      ]
+    }
+  ];
+
+  // Generate transactions from scenarios
+  transactionScenarios.forEach(scenario => {
+    scenario.transactions.forEach((tx, index) => {
+      const date = new Date(tx.date);
+      transactions.push({
+        id: `${tx.type}_${scenario.projectId}_${index}`,
+        projectId: scenario.projectId,
+        userId: tx.user,
+        type: tx.type as 'income' | 'expense',
+        amount: tx.amount,
+        category: (tx.category || 'other') as TransactionCategory,
+        description: tx.description,
+        date: date.toISOString(),
+        createdAt: date.toISOString(),
+        updatedAt: date.toISOString()
+      });
     });
   });
-  
-  // Generate expense transactions
-  mockProjects.forEach(project => {
-    project.assignedUsers.forEach(userId => {
-      const expenseCount = Math.floor(Math.random() * 8) + 3; // 3-10 expense transactions per user per project
-      
-      for (let i = 0; i < expenseCount; i++) {
-        const date = new Date(project.startDate);
-        date.setDate(date.getDate() + Math.floor(Math.random() * 90)); // Random date within 90 days of start
-        
-        const category = categories[Math.floor(Math.random() * categories.length)];
-        let amount = 0;
-        let description = '';
-        
-        switch (category) {
-          case 'material':
-            amount = Math.floor(Math.random() * 15000) + 5000;
-            description = 'Tikinti materialları alındı';
-            break;
-          case 'salary':
-            amount = Math.floor(Math.random() * 8000) + 2000;
-            description = 'İşçi maaşı ödəndi';
-            break;
-          case 'equipment':
-            amount = Math.floor(Math.random() * 25000) + 10000;
-            description = 'Texniki avadanlıq alındı';
-            break;
-          case 'transport':
-            amount = Math.floor(Math.random() * 3000) + 500;
-            description = 'Nəqliyyat xərci';
-            break;
-          case 'utilities':
-            amount = Math.floor(Math.random() * 2000) + 300;
-            description = 'Kommunal xidmətlər';
-            break;
-          case 'rent':
-            amount = Math.floor(Math.random() * 5000) + 2000;
-            description = 'Yer kirayəsi';
-            break;
-          case 'marketing':
-            amount = Math.floor(Math.random() * 4000) + 1000;
-            description = 'Marketinq xərci';
-            break;
-          default:
-            amount = Math.floor(Math.random() * 5000) + 1000;
-            description = 'Digər xərclər';
-        }
-        
-        transactions.push({
-          id: `expense_${project.id}_${userId}_${i}`,
-          projectId: project.id,
-          userId,
-          type: 'expense',
-          amount,
-          category,
-          description,
-          date: date.toISOString(),
-          createdAt: date.toISOString(),
-          updatedAt: date.toISOString()
-        });
-      }
+
+  // Add company-related transactions
+  const companyTransactions = [
+    // TRD LLC transactions
+    { type: 'income', amount: 100000, description: 'TRD LLC-dən mədaxil', date: '2024-01-15', companyId: 'co1', user: '1' },
+    { type: 'expense', amount: 25000, description: 'TRD LLC üçün xərc', date: '2024-01-20', companyId: 'co1', user: '2', category: 'equipment' },
+    { type: 'income', amount: 75000, description: 'TRD LLC əlavə mədaxil', date: '2024-02-01', companyId: 'co1', user: '1' },
+    { type: 'expense', amount: 15000, description: 'TRD LLC marketinq xərci', date: '2024-02-05', companyId: 'co1', user: '3', category: 'marketing' },
+    
+    // Qrup A transactions
+    { type: 'income', amount: 80000, description: 'Qrup A-dan mədaxil', date: '2024-02-10', companyId: 'co2', user: '2' },
+    { type: 'expense', amount: 20000, description: 'Qrup A üçün xərc', date: '2024-02-15', companyId: 'co2', user: '4', category: 'material' },
+    { type: 'income', amount: 50000, description: 'Qrup A əlavə mədaxil', date: '2024-02-20', companyId: 'co2', user: '2' },
+    { type: 'expense', amount: 12000, description: 'Qrup A nəqliyyat xərci', date: '2024-02-25', companyId: 'co2', user: '5', category: 'transport' }
+  ];
+
+  companyTransactions.forEach((tx, index) => {
+    const date = new Date(tx.date);
+    transactions.push({
+      id: `company_${tx.type}_${tx.companyId}_${index}`,
+      projectId: '', // No project for company transactions
+      userId: tx.user,
+      type: tx.type as 'income' | 'expense',
+      amount: tx.amount,
+      category: (tx.category || 'other') as TransactionCategory,
+      description: tx.description,
+      companyId: tx.companyId,
+      date: date.toISOString(),
+      createdAt: date.toISOString(),
+      updatedAt: date.toISOString()
     });
   });
   
@@ -339,6 +365,106 @@ export const getUsersByProject = (projectId: string): User[] => {
     .filter((user): user is User => user !== undefined);
 };
 
+// Calculate project account balance (running balance from transactions)
+export const getProjectAccountBalance = (projectId: string): number => {
+  const projectTransactions = getTransactionsByProject(projectId);
+  let balance = 0;
+  
+  // Sort transactions by date to calculate running balance
+  const sortedTransactions = projectTransactions.sort((a, b) => 
+    new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
+  
+  sortedTransactions.forEach(transaction => {
+    if (transaction.type === 'income') {
+      balance += transaction.amount;
+    } else if (transaction.type === 'expense') {
+      balance -= transaction.amount;
+    }
+  });
+  
+  return balance;
+};
+
+// Get transactions with running balance for a project
+export const getTransactionsWithBalance = (projectId: string): Array<Transaction & { runningBalance: number }> => {
+  const projectTransactions = getTransactionsByProject(projectId);
+  let runningBalance = 0;
+  
+  // Sort transactions by date to calculate running balance
+  const sortedTransactions = projectTransactions.sort((a, b) => 
+    new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
+  
+  return sortedTransactions.map(transaction => {
+    if (transaction.type === 'income') {
+      runningBalance += transaction.amount;
+    } else if (transaction.type === 'expense') {
+      runningBalance -= transaction.amount;
+    }
+    
+    return {
+      ...transaction,
+      runningBalance
+    };
+  }).reverse(); // Return in reverse order (newest first)
+};
+
+// Get company by ID
+export const getCompanyById = (id: string) => {
+  return mockData.companies.find(c => c.id === id);
+};
+
+// Get transactions by company
+export const getTransactionsByCompany = (companyId: string): Transaction[] => {
+  return mockTransactions.filter(t => t.companyId === companyId);
+};
+
+// Calculate company account balance
+export const getCompanyAccountBalance = (companyId: string): number => {
+  const companyTransactions = getTransactionsByCompany(companyId);
+  let balance = 0;
+  
+  // Sort transactions by date to calculate running balance
+  const sortedTransactions = companyTransactions.sort((a, b) => 
+    new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
+  
+  sortedTransactions.forEach(transaction => {
+    if (transaction.type === 'income') {
+      balance += transaction.amount;
+    } else if (transaction.type === 'expense') {
+      balance -= transaction.amount;
+    }
+  });
+  
+  return balance;
+};
+
+// Get transactions with running balance for a company
+export const getCompanyTransactionsWithBalance = (companyId: string): Array<Transaction & { runningBalance: number }> => {
+  const companyTransactions = getTransactionsByCompany(companyId);
+  let runningBalance = 0;
+  
+  // Sort transactions by date to calculate running balance
+  const sortedTransactions = companyTransactions.sort((a, b) => 
+    new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
+  
+  return sortedTransactions.map(transaction => {
+    if (transaction.type === 'income') {
+      runningBalance += transaction.amount;
+    } else if (transaction.type === 'expense') {
+      runningBalance -= transaction.amount;
+    }
+    
+    return {
+      ...transaction,
+      runningBalance
+    };
+  }).reverse(); // Return in reverse order (newest first)
+};
+
 // Export all data
 export const mockData = {
   users: mockUsers,
@@ -348,7 +474,7 @@ export const mockData = {
   dashboardStats: getDashboardStats(),
   categories: mockCategories,
   companies: [
-    { id: 'co1', title: 'TRD LLC', logoUrl: '', isActive: true, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
-    { id: 'co2', title: 'Qrup A', logoUrl: '', isActive: true, createdAt: '2024-02-01T00:00:00Z', updatedAt: '2024-02-01T00:00:00Z' }
+    { id: 'co1', title: 'TRD LLC', logoUrl: '', isActive: true, budgetLimit: 500000, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
+    { id: 'co2', title: 'Qrup A', logoUrl: '', isActive: true, budgetLimit: 300000, createdAt: '2024-02-01T00:00:00Z', updatedAt: '2024-02-01T00:00:00Z' }
   ]
 };

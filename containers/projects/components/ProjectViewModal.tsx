@@ -4,7 +4,7 @@ import React from 'react';
 import { useTranslations } from 'next-intl';
 import DialogComponent from '@/components/modals/DialogComponent';
 import { Badge } from '@/components/ui/badge';
-import { getTransactionsByProject, getUsersByProject, getUserById } from '@/lib/mock-data';
+import { getTransactionsByProject, getUsersByProject, getUserById, getProjectAccountBalance, getTransactionsWithBalance } from '@/lib/mock-data';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { Transaction } from '@/types';
 
@@ -33,6 +33,8 @@ export default function ProjectViewModal({ isOpen, onClose, project }: ProjectVi
 
   const users = getUsersByProject(project.id);
   const transactions: Transaction[] = getTransactionsByProject(project.id);
+  const accountBalance = getProjectAccountBalance(project.id);
+  const transactionsWithBalance = getTransactionsWithBalance(project.id);
 
   return (
     <DialogComponent
@@ -64,7 +66,7 @@ export default function ProjectViewModal({ isOpen, onClose, project }: ProjectVi
         </div>
 
         {/* Budget Summary */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="bg-blue-50 rounded-lg p-3 text-center">
             <p className="text-xs text-gray-600 mb-1">{t('projects.projectTotalBudget')}</p>
             <p className="text-lg font-bold text-blue-600">{formatCurrency(project.budget)}</p>
@@ -76,6 +78,10 @@ export default function ProjectViewModal({ isOpen, onClose, project }: ProjectVi
           <div className="bg-green-50 rounded-lg p-3 text-center">
             <p className="text-xs text-gray-600 mb-1">{t('projects.projectRemainingBudget')}</p>
             <p className="text-lg font-bold text-green-600">{formatCurrency(project.remainingBudget)}</p>
+          </div>
+          <div className="bg-purple-50 rounded-lg p-3 text-center">
+            <p className="text-xs text-gray-600 mb-1">{t('projects.projectAccount')}</p>
+            <p className="text-lg font-bold text-purple-600">{formatCurrency(accountBalance)}</p>
           </div>
         </div>
 
@@ -104,19 +110,20 @@ export default function ProjectViewModal({ isOpen, onClose, project }: ProjectVi
         <div className="bg-gray-50 rounded-lg p-3">
           <p className="text-sm font-medium text-gray-700 mb-3">{t('projects.projectTransactions')}</p>
           {/* Header Row */}
-          <div className="grid grid-cols-3 items-center text-xs text-gray-500 px-1 pb-2">
+          <div className="grid grid-cols-4 items-center text-xs text-gray-500 px-1 pb-2">
             <div>{t('projects.transaction')}</div>
             <div className="text-center">{t('projects.manager')}</div>
             <div className="text-right">{t('common.amount')}</div>
+            <div className="text-right">{t('projects.projectAccount')}</div>
           </div>
           <div className="space-y-2 max-h-96 overflow-y-auto">
-            {transactions.map(transaction => {
+            {transactionsWithBalance.map(transaction => {
               const user = getUserById(transaction.userId);
               return (
-                <div key={transaction.id} className="bg-white rounded-lg p-3 grid grid-cols-3 items-center gap-2">
+                <div key={transaction.id} className="bg-white rounded-lg p-3 grid grid-cols-4 items-center gap-2">
                   <div>
                     <p className="text-sm font-medium mb-1">{transaction.description || (transaction.type === 'income' ? t('projects.income') : t('projects.expense'))}</p>
-                    <div className="text-xs text-gray-500">{formatDate(transaction.date)} </div>
+                    <div className="text-xs text-gray-500">{formatDate(transaction.date)}</div>
                   </div>
                   <div className="text-center">
                     {user && (
@@ -127,6 +134,9 @@ export default function ProjectViewModal({ isOpen, onClose, project }: ProjectVi
                   </div>
                   <div className={`text-sm font-semibold text-right ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
                     {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                  </div>
+                  <div className="text-sm font-semibold text-right text-purple-600">
+                    {formatCurrency(transaction.runningBalance)}
                   </div>
                 </div>
               );

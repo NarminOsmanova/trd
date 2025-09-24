@@ -6,12 +6,14 @@ import { Button } from '@/components/ui/button';
 import DialogComponent from '@/components/modals/DialogComponent';
 import CompaniesTable from './components/CompaniesTable';
 import CompanyForm from './components/FormComponent';
+import CompanyViewModal from './components/CompanyViewModal';
 import { mockData } from '@/lib/mock-data';
 import { CompanyItem } from './types/company-type';
 
 const CompanyPage = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editing, setEditing] = useState<CompanyItem | null>(null);
+  const [viewing, setViewing] = useState<CompanyItem | null>(null);
   const [companies, setCompanies] = useState<CompanyItem[]>(() => {
     // @ts-ignore
     return (mockData.companies as CompanyItem[] | undefined) || [];
@@ -19,14 +21,16 @@ const CompanyPage = () => {
 
   const openCreate = () => { setEditing(null); setIsFormOpen(true); };
   const openEdit = (item: CompanyItem) => { setEditing(item); setIsFormOpen(true); };
+  const openView = (item: CompanyItem) => { setViewing(item); };
 
-  const handleSubmit = (data: { title: string; logoUrl?: string; isActive?: boolean }) => {
+  const handleSubmit = (data: { title: string; logoUrl?: string; isActive?: boolean; budgetLimit?: number }) => {
     if (editing) {
       setCompanies(prev => prev.map(c => c.id === editing.id ? {
         ...editing,
         title: data.title,
         logoUrl: data.logoUrl,
         isActive: data.isActive ?? editing.isActive,
+        budgetLimit: data.budgetLimit,
         updatedAt: new Date().toISOString()
       } : c));
     } else {
@@ -35,6 +39,7 @@ const CompanyPage = () => {
         title: data.title,
         logoUrl: data.logoUrl,
         isActive: true,
+        budgetLimit: data.budgetLimit,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
@@ -67,6 +72,7 @@ const CompanyPage = () => {
         onEdit={openEdit}
         onDelete={handleDelete}
         onToggleActive={handleToggleActive}
+        onView={openView}
       />
 
       <DialogComponent
@@ -76,11 +82,17 @@ const CompanyPage = () => {
         size="md"
       >
         <CompanyForm
-          initialData={editing ? { title: editing.title, logoUrl: editing.logoUrl, isActive: editing.isActive } : undefined}
+          initialData={editing ? { title: editing.title, logoUrl: editing.logoUrl, isActive: editing.isActive, budgetLimit: editing.budgetLimit } : undefined}
           onSubmit={handleSubmit}
           onCancel={() => setIsFormOpen(false)}
         />
       </DialogComponent>
+
+      <CompanyViewModal
+        isOpen={!!viewing}
+        onClose={() => setViewing(null)}
+        company={viewing}
+      />
     </div>
   );
 }

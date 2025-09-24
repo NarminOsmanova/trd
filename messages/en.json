@@ -73,7 +73,10 @@
       "paused": "Paused",
       "pending": "Pending",
       "approved": "Approved",
-      "rejected": "Rejected"
+      "rejected": "Rejected",
+      "partner": "Partner",
+      "admin": "Admin",
+      "user": "Manager"
     },
     "projects": {
       "projectName": "Project Name",
@@ -110,7 +113,11 @@
       "transaction": "Transaction",
       "manager": "Manager",
       "noTransactions": "No transactions",
+      "projectAccount": "Project Account",
       "optional": "optional",
+      "budgetLimit": "Budget Limit",
+      "companyAccount": "Company Account",
+      "transactionCount": "Transaction Count",
       "searchPlaceholder": "Search projects...",
       "selectStatus": "Select status",
       "allStatuses": "All statuses",

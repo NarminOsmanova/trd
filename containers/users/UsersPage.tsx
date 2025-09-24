@@ -52,7 +52,8 @@ export default function UsersPage() {
       activeUsers: users.filter(u => u.isActive).length,
       inactiveUsers: users.filter(u => !u.isActive).length,
       adminUsers: users.filter(u => u.role === 'admin').length,
-      regularUsers: users.filter(u => u.role === 'user').length
+      regularUsers: users.filter(u => u.role === 'user').length,
+      partnerUsers: users.filter(u => u.role === 'partner').length
     };
   }, [users]);
 
@@ -168,7 +169,7 @@ export default function UsersPage() {
         )}
 
         {/* Summary Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
             <div className="flex items-center">
               <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
@@ -216,6 +217,18 @@ export default function UsersPage() {
               </div>
             </div>
           </div>
+
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <div className="flex items-center">
+              <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center mr-3">
+                <ShieldCheck className="w-4 h-4 text-indigo-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Partnyorlar</p>
+                <p className="text-lg font-semibold text-gray-900">{userStats.partnerUsers}</p>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Additional Stats */}
@@ -239,6 +252,15 @@ export default function UsersPage() {
                 </div>
                 <span className="text-sm font-semibold text-gray-900">
                   {userStats.regularUsers} ({((userStats.regularUsers / userStats.totalUsers) * 100).toFixed(1)}%)
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <ShieldCheck className="w-5 h-5 text-indigo-600 mr-2" />
+                  <span className="text-sm font-medium text-gray-700">Partnyorlar</span>
+                </div>
+                <span className="text-sm font-semibold text-gray-900">
+                  {userStats.partnerUsers} ({((userStats.partnerUsers / userStats.totalUsers) * 100).toFixed(1)}%)
                 </span>
               </div>
             </div>

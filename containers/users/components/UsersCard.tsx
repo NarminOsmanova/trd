@@ -160,7 +160,7 @@ export default function UsersCard({
 
           <Select 
             value={filters.role || 'all'} 
-            onValueChange={(value) => onFiltersChange({ role: value === 'all' ? undefined : value as 'admin' | 'user' })}
+            onValueChange={(value) => onFiltersChange({ role: value === 'all' ? undefined : value as 'admin' | 'user' | 'partner' })}
           >
             <SelectTrigger>
               <SelectValue placeholder="Rol seçin" />
@@ -169,6 +169,7 @@ export default function UsersCard({
               <SelectItem value="all">Bütün rollar</SelectItem>
               <SelectItem value="admin">Admin</SelectItem>
               <SelectItem value="user">Menecer</SelectItem>
+              <SelectItem value="partner">Partnyor</SelectItem>
             </SelectContent>
           </Select>
 

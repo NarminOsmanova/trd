@@ -48,6 +48,7 @@ export interface Transaction {
   fromProjectId?: string;
   toProjectId?: string;
   toUserId?: string;
+  companyId?: string; // For company-related transactions
 }
 
 export type TransactionCategory = 

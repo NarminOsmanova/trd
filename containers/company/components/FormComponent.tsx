@@ -55,6 +55,16 @@ export default function CompanyForm({ initialData, onSubmit, onCancel }: Props) 
         </div>
       </div>
 
+      <div className="space-y-2">
+        <Label>Büdcə Limiti</Label>
+        <Input 
+          {...register('budgetLimit')} 
+          type="number" 
+          placeholder="Büdcə limitini daxil edin" 
+        />
+        {errors.budgetLimit && <p className="text-sm text-red-600">{errors.budgetLimit.message}</p>}
+      </div>
+
       <div className="flex items-center justify-end gap-2">
         <Button type="button" variant="outline" onClick={onCancel}>Ləğv et</Button>
         <Button type="submit" disabled={isSubmitting}>Saxla</Button>
