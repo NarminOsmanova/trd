@@ -11,20 +11,21 @@
       "notifications": "Notifications",
       "settings": "Settings"
     },
-    "sidebar": {
-      "dashboard": "Dashboard",
-      "projects": "Projects",
-      "users": "Users",
-      "transactions": "Transactions",
-      "reports": "Reports",
-      "category": "Categories",
-      "company": "Companies",
-      "notifications": "Notifications",
-      "settings": "Settings",
-      "logout": "Logout",
-      "admin": "Admin",
-      "manager": "Manager"
-    },
+      "sidebar": {
+        "dashboard": "Dashboard",
+        "projects": "Projects",
+        "users": "Users",
+        "transactions": "Transactions",
+        "debt": "Debts",
+        "reports": "Reports",
+        "category": "Categories",
+        "company": "Companies",
+        "notifications": "Notifications",
+        "settings": "Settings",
+        "logout": "Logout",
+        "admin": "Admin",
+        "manager": "Manager"
+      },
     "common": {
       "loading": "Loading...",
       "close": "Close",

@@ -11,20 +11,21 @@
       "notifications": "Bildirişlər",
       "settings": "Tənzimləmələr"
     },
-    "sidebar": {
-      "dashboard": "Dashboard",
-      "projects": "Layihələr",
-      "users": "İstifadəçilər",
-      "transactions": "Əməliyyatlar",
-      "reports": "Hesabatlar",
-      "category": "Kateqoriyalar",
-      "company": "Şirkətlər",
-      "notifications": "Bildirişlər",
-      "settings": "Tənzimləmələr",
-      "logout": "Çıxış",
-      "admin": "Admin",
-      "manager": "Menecer"
-    },
+      "sidebar": {
+        "dashboard": "Dashboard",
+        "projects": "Layihələr",
+        "users": "İstifadəçilər",
+        "transactions": "Əməliyyatlar",
+        "debt": "Borclar",
+        "reports": "Hesabatlar",
+        "category": "Kateqoriyalar",
+        "company": "Şirkətlər",
+        "notifications": "Bildirişlər",
+        "settings": "Tənzimləmələr",
+        "logout": "Çıxış",
+        "admin": "Admin",
+        "manager": "Menecer"
+      },
     "common": {
       "loading": "Yüklənir...",
       "close": "Bağla",

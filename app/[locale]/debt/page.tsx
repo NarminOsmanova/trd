@@ -1,13 +1,13 @@
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import CompanyPage from '@/containers/company/CompanyPage';
+import DebtPage from '@/containers/debt/DebtPage';
 
 export default function Page() {
   return (
     <DashboardLayout 
-      title="Şirkətlər" 
-      subtitle="Şirkətlərin idarəetməsi"
+      title="Borclar" 
+      subtitle="Borcların idarəetməsi və monitorinqi"
     >
-      <CompanyPage />
+      <DebtPage />
     </DashboardLayout>
   );
 }

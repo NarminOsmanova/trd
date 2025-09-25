@@ -4,9 +4,9 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { 
-  LayoutDashboard, 
-  FolderOpen, 
+import {
+  LayoutDashboard,
+  FolderOpen,
   Users, 
   Receipt, 
   BarChart3, 
@@ -17,7 +17,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Tags,
-  Building
+  Building,
+  CreditCard
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
@@ -30,6 +31,7 @@ const navigation = [
   { nameKey: 'sidebar.reports', href: '/reports', icon: BarChart3, roles: ['admin', 'user'] },
   { nameKey: 'sidebar.category', href: '/category', icon: Tags, roles: ['admin'] },
   { nameKey: 'sidebar.company', href: '/company', icon: Building, roles: ['admin'] },
+  { nameKey: 'sidebar.debt', href: '/debt', icon: CreditCard, roles: ['admin', 'user'] },
   { nameKey: 'sidebar.notifications', href: '/notifications', icon: Bell, roles: ['admin', 'user'] },
   { nameKey: 'sidebar.settings', href: '/settings', icon: Settings, roles: ['admin'] },
 ];

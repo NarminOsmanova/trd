@@ -7,6 +7,7 @@ import {
   TransactionCategory,
   Category
 } from '@/types';
+import { Debt } from '@/containers/debt/types/debt-type';
 
 // Mock Users Data
 export const mockUsers: User[] = [
@@ -136,6 +137,58 @@ export const mockProjects: Project[] = [
   }
 ];
 
+// Mock Debts Data
+export const mockDebts: Debt[] = [
+  {
+    id: '1',
+    amount: 5000,
+    currency: 'AZN',
+    debtor: 'Əli Məmmədov',
+    description: 'Tikinti materialları üçün borc',
+    dueDate: '2024-03-15T00:00:00Z',
+    status: 'active',
+    createdAt: '2024-01-15T00:00:00Z',
+    updatedAt: '2024-01-15T00:00:00Z',
+    createdBy: '1'
+  },
+  {
+    id: '2',
+    amount: 2500,
+    currency: 'USD',
+    debtor: 'Ayşə Əliyeva',
+    description: 'Avadanlıq alışı üçün borc',
+    dueDate: '2024-02-28T00:00:00Z',
+    status: 'paid',
+    createdAt: '2024-01-20T00:00:00Z',
+    updatedAt: '2024-02-28T00:00:00Z',
+    createdBy: '2'
+  },
+  {
+    id: '3',
+    amount: 15000,
+    currency: 'AZN',
+    debtor: 'Məmməd Həsənov',
+    description: 'Nəqliyyat xidmətləri üçün borc',
+    dueDate: '2024-01-31T00:00:00Z',
+    status: 'overdue',
+    createdAt: '2024-01-10T00:00:00Z',
+    updatedAt: '2024-01-10T00:00:00Z',
+    createdBy: '3'
+  },
+  {
+    id: '4',
+    amount: 8000,
+    currency: 'EUR',
+    debtor: 'Fatma Quliyeva',
+    description: 'Marketinq kampaniyası üçün borc',
+    dueDate: '2024-04-10T00:00:00Z',
+    status: 'active',
+    createdAt: '2024-02-01T00:00:00Z',
+    updatedAt: '2024-02-01T00:00:00Z',
+    createdBy: '1'
+  }
+];
+
 // Project Account Balances (separate from budget)
 export const projectAccountBalances: Record<string, number> = {
   '1': 0, // Yeni Bina Tikintisi - starts with 0
@@ -242,7 +295,7 @@ const generateTransactions = (): Transaction[] => {
     const date = new Date(tx.date);
     transactions.push({
       id: `company_${tx.type}_${tx.companyId}_${index}`,
-      projectId: '', // No project for company transactions
+      projectId: '1', // Assign company transactions to main project
       userId: tx.user,
       type: tx.type as 'income' | 'expense',
       amount: tx.amount,
@@ -476,5 +529,6 @@ export const mockData = {
   companies: [
     { id: 'co1', title: 'TRD LLC', logoUrl: '', isActive: true, budgetLimit: 500000, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
     { id: 'co2', title: 'Qrup A', logoUrl: '', isActive: true, budgetLimit: 300000, createdAt: '2024-02-01T00:00:00Z', updatedAt: '2024-02-01T00:00:00Z' }
-  ]
+  ],
+  debts: mockDebts
 };

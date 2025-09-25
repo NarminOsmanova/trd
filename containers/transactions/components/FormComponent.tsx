@@ -253,7 +253,11 @@ export default function FormComponent({
                   <SelectValue placeholder="Mənbə seçin" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="cash">Company</SelectItem>
+                  {mockData.companies.map((company) => (
+                    <SelectItem key={company.id} value={company.id}>
+                      {company.title}
+                    </SelectItem>
+                  ))}
                   <SelectItem value="own">Öz vəsaiti</SelectItem>
                 </SelectContent>
               </Select>
