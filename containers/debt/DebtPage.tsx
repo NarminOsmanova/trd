@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { mockData } from '@/lib/mock-data';
-import { Debt, DebtFormData, DebtFilters } from './types/debt-type';
+import { Debt, DebtFormData, DebtFilters, Payment } from './types/debt-type';
 import DebtsTable from './components/DebtsTable';
 import DebtCards from './components/DebtCards';
 import FormComponent from './components/FormComponent';
@@ -71,6 +71,11 @@ export default function DebtPage() {
 
   const handleMarkAsPaid = (debtId: string) => {
     console.log('Mark as paid:', debtId);
+  };
+
+  const handleAddPayment = (debtId: string, payment: Omit<Payment, 'id'>) => {
+    console.log('Add payment:', debtId, payment);
+    // Burada payment əlavə etmə məntiqi olacaq
   };
 
   const handleCreateDebt = () => {
@@ -282,6 +287,7 @@ export default function DebtPage() {
             onEditDebt={handleEditDebt}
             onDeleteDebt={handleDeleteDebt}
             onMarkAsPaid={handleMarkAsPaid}
+            onAddPayment={handleAddPayment}
           />
         ) : (
           <DebtsTable
@@ -293,6 +299,7 @@ export default function DebtPage() {
             onDeleteDebt={handleDeleteDebt}
             onMarkAsPaid={handleMarkAsPaid}
             onCreateDebt={handleCreateDebt}
+            onAddPayment={handleAddPayment}
           />
         )}
       </div>
@@ -320,6 +327,7 @@ export default function DebtPage() {
         onEdit={handleEditDebt}
         onMarkAsPaid={handleMarkAsPaid}
         onDelete={handleDeleteDebt}
+        onAddPayment={handleAddPayment}
       />
     </>
   );

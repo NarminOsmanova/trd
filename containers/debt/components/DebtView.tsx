@@ -17,7 +17,7 @@ import {
 import DialogComponent from '@/components/modals/DialogComponent';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Debt } from '../types/debt-type';
+import { Debt, Payment } from '../types/debt-type';
 import { mockData } from '@/lib/mock-data';
 import { formatCurrency, formatDate, getInitials } from '@/lib/utils';
 
@@ -28,6 +28,7 @@ interface DebtViewProps {
   onEdit?: (debt: Debt) => void;
   onMarkAsPaid?: (debtId: string) => void;
   onDelete?: (debtId: string) => void;
+  onAddPayment?: (debtId: string, payment: Omit<Payment, 'id'>) => void;
 }
 
 export default function DebtView({
@@ -36,7 +37,8 @@ export default function DebtView({
   debt,
   onEdit,
   onMarkAsPaid,
-  onDelete
+  onDelete,
+  onAddPayment
 }: DebtViewProps) {
   const t = useTranslations();
 
@@ -100,6 +102,12 @@ export default function DebtView({
   const user = getDebtUser(debt);
   const overdue = isOverdue(debt.dueDate);
   const daysUntilDue = getDaysUntilDue(debt.dueDate);
+  
+  // Payment calculations
+  const payments = debt.payments || [];
+  const totalPaid = payments.reduce((sum, payment) => sum + payment.amount, 0);
+  const remainingAmount = debt.amount - totalPaid;
+  const paymentProgress = debt.amount > 0 ? (totalPaid / debt.amount) * 100 : 0;
 
   return (
     <DialogComponent
@@ -124,7 +132,7 @@ export default function DebtView({
                 {getStatusIcon(debt.status)}
                 {getStatusLabel(debt.status)}
               </Badge>
-              {overdue && (
+              {overdue && debt.status === 'active' && (
                 <Badge className="bg-red-100 text-red-800 border-red-200 flex items-center gap-1">
                   <AlertTriangle className="w-3 h-3" />
                   Gecikmiş
@@ -134,17 +142,17 @@ export default function DebtView({
           </div>
         </div>
 
-        {/* Amount and Currency */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Amount and Payment Info */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-white rounded-lg p-4 border border-gray-200">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                 <DollarSign className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Məbləğ</p>
+                <p className="text-sm text-gray-600">Ümumi Məbləğ</p>
                 <p className="text-xl font-bold text-gray-900">
-                  {formatCurrency(debt.amount)} {debt.currency}
+                  {formatCurrency(debt.amount)}
                 </p>
               </div>
             </div>
@@ -153,15 +161,56 @@ export default function DebtView({
           <div className="bg-white rounded-lg p-4 border border-gray-200">
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <CreditCard className="w-5 h-5 text-blue-600" />
+                <CheckCircle className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Valyuta</p>
-                <p className="text-xl font-bold text-gray-900">{debt.currency}</p>
+                <p className="text-sm text-gray-600">Ödənilib</p>
+                <p className="text-xl font-bold text-blue-600">
+                  {formatCurrency(totalPaid)}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg p-4 border border-gray-200">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-orange-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-600">Qalıq</p>
+                <p className={`text-xl font-bold ${remainingAmount > 0 ? 'text-orange-600' : 'text-green-600'}`}>
+                  {formatCurrency(remainingAmount)}
+                </p>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Payment Progress Bar */}
+        {debt.status === 'active' && (
+          <div className="bg-white rounded-lg p-4 border border-gray-200">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-gray-700">Ödəniş Proqresi</span>
+              <span className="text-sm text-gray-500">{paymentProgress.toFixed(1)}% tamamlanıb</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-3">
+              <div
+                className={`h-3 rounded-full transition-all duration-300 bg-blue-500 ${
+                  paymentProgress >= 100 ? 'w-full' :
+                  paymentProgress >= 75 ? 'w-3/4' :
+                  paymentProgress >= 50 ? 'w-1/2' :
+                  paymentProgress >= 25 ? 'w-1/4' :
+                  'w-0'
+                }`}
+              ></div>
+            </div>
+            <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <span>0</span>
+              <span>{formatCurrency(debt.amount)}</span>
+            </div>
+          </div>
+        )}
 
         {/* Due Date and Time Info */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -201,6 +250,54 @@ export default function DebtView({
             </div>
           </div>
         </div>
+
+        {/* Payment History */}
+        {payments.length > 0 && (
+          <div className="bg-white rounded-lg p-4 border border-gray-200">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                  <TrendingUp className="w-5 h-5 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-700">Ödəniş Tarixçəsi</p>
+                  <p className="text-xs text-gray-500">{payments.length} ödəniş</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              {payments
+                .sort((a, b) => new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime())
+                .map((payment, index) => {
+                  const paymentUser = mockData.users.find(u => u.id === payment.createdBy);
+                  return (
+                    <div key={payment.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                          <span className="text-blue-600 font-semibold text-sm">#{payments.length - index}</span>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">
+                            {formatCurrency(payment.amount)}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {formatDate(payment.paymentDate)}
+                          </p>
+                          {payment.description && (
+                            <p className="text-xs text-gray-600 mt-1">{payment.description}</p>
+                          )}
+                        </div>
+                      </div>
+                      <Badge className="bg-green-100 text-green-800 border-green-200">
+                        Ödənilib
+                      </Badge>
+                    </div>
+                  );
+                })}
+            </div>
+          </div>
+        )}
 
         {/* Description */}
         {debt.description && (
@@ -249,6 +346,31 @@ export default function DebtView({
           >
             Bağla
           </Button>
+          {onAddPayment && debt.status === 'active' && remainingAmount > 0 && (
+            <Button
+              onClick={() => {
+                const amount = prompt(`Ödəniş məbləğini daxil edin (Qalıq: ${formatCurrency(remainingAmount)}):`);
+                if (amount && !isNaN(Number(amount)) && Number(amount) > 0) {
+                  const paymentAmount = Number(amount);
+                  if (paymentAmount <= remainingAmount) {
+                    const description = prompt('Ödəniş haqqında qeyd (isteğe bağlı):');
+                    onAddPayment(debt.id, {
+                      amount: paymentAmount,
+                      paymentDate: new Date().toISOString().split('T')[0],
+                      description: description || undefined,
+                      createdBy: '1' // Mock user ID
+                    });
+                  } else {
+                    alert('Ödəniş məbləği qalıq məbləğdən çox ola bilməz!');
+                  }
+                }
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <DollarSign className="w-4 h-4 mr-2" />
+              Ödəniş Əlavə Et
+            </Button>
+          )}
           {onEdit && (
             <Button
               variant="outline"
@@ -258,7 +380,7 @@ export default function DebtView({
               Redaktə Et
             </Button>
           )}
-          {onMarkAsPaid && debt.status === 'active' && (
+          {onMarkAsPaid && debt.status === 'active' && remainingAmount === 0 && (
             <Button
               onClick={() => onMarkAsPaid(debt.id)}
               className="bg-green-600 hover:bg-green-700 text-white"

@@ -14,7 +14,7 @@ import {
   MoreVertical
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { Debt } from '../types/debt-type';
+import { Debt, Payment } from '../types/debt-type';
 import { mockData } from '@/lib/mock-data';
 import { formatCurrency, formatDate, getInitials } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,7 @@ interface DebtCardsProps {
   onEditDebt: (debt: Debt) => void;
   onDeleteDebt: (id: string) => void;
   onMarkAsPaid: (id: string) => void;
+  onAddPayment?: (debtId: string, payment: Omit<Payment, 'id'>) => void;
 }
 
 export default function DebtCards({
@@ -121,7 +122,7 @@ export default function DebtCards({
   return (
     <div className="space-y-6">
       {/* Debts Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {pagination.paginatedData.map((debt) => {
           const user = getDebtUser(debt);
           const overdue = isOverdue(debt.dueDate);
@@ -164,7 +165,7 @@ export default function DebtCards({
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Məbləğ:</span>
                   <span className="text-xl font-bold text-gray-900">
-                    {formatCurrency(debt.amount)} {debt.currency}
+                    {formatCurrency(debt.amount)}
                   </span>
                 </div>
               </div>

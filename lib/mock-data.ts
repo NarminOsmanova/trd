@@ -149,7 +149,23 @@ export const mockDebts: Debt[] = [
     status: 'active',
     createdAt: '2024-01-15T00:00:00Z',
     updatedAt: '2024-01-15T00:00:00Z',
-    createdBy: '1'
+    createdBy: '1',
+    payments: [
+      {
+        id: 'p1',
+        amount: 2000,
+        paymentDate: '2024-02-01T00:00:00Z',
+        description: 'İlk ödəniş',
+        createdBy: '1'
+      },
+      {
+        id: 'p2',
+        amount: 1500,
+        paymentDate: '2024-02-15T00:00:00Z',
+        description: 'İkinci ödəniş',
+        createdBy: '2'
+      }
+    ]
   },
   {
     id: '2',
@@ -161,7 +177,30 @@ export const mockDebts: Debt[] = [
     status: 'paid',
     createdAt: '2024-01-20T00:00:00Z',
     updatedAt: '2024-02-28T00:00:00Z',
-    createdBy: '2'
+    createdBy: '2',
+    payments: [
+      {
+        id: 'p3',
+        amount: 1000,
+        paymentDate: '2024-02-10T00:00:00Z',
+        description: 'Avadanlıq üçün ilk ödəniş',
+        createdBy: '2'
+      },
+      {
+        id: 'p4',
+        amount: 1000,
+        paymentDate: '2024-02-20T00:00:00Z',
+        description: 'Avadanlıq üçün ikinci ödəniş',
+        createdBy: '1'
+      },
+      {
+        id: 'p5',
+        amount: 500,
+        paymentDate: '2024-02-25T00:00:00Z',
+        description: 'Son ödəniş',
+        createdBy: '2'
+      }
+    ]
   },
   {
     id: '3',
@@ -173,7 +212,16 @@ export const mockDebts: Debt[] = [
     status: 'overdue',
     createdAt: '2024-01-10T00:00:00Z',
     updatedAt: '2024-01-10T00:00:00Z',
-    createdBy: '3'
+    createdBy: '3',
+    payments: [
+      {
+        id: 'p6',
+        amount: 5000,
+        paymentDate: '2024-01-20T00:00:00Z',
+        description: 'Nəqliyyat üçün ilk ödəniş',
+        createdBy: '3'
+      }
+    ]
   },
   {
     id: '4',

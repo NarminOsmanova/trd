@@ -49,10 +49,14 @@ export default function FormComponent({
       projectId: "",
       type: "expense",
       category: "",
+      customCategory: "",
       amount: 0,
       description: "",
       date: new Date().toISOString().split("T")[0],
       currency: "AZN",
+      topupType: undefined,
+      topupTarget: "",
+      refundCompany: "",
       ...initialData,
     },
   });
@@ -101,6 +105,14 @@ export default function FormComponent({
     setValue("toUserId", value);
   };
 
+  const handleTopupTypeChange = (value: string) => {
+    setValue("topupType", value as "project" | "company");
+  };
+
+  const handleTopupTargetChange = (value: string) => {
+    setValue("topupTarget", value);
+  };
+
   return (
     <DialogComponent
       open={isOpen}
@@ -110,8 +122,8 @@ export default function FormComponent({
       maxHeight="max-h-[90vh]"
     >
       <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Type */}
+        {/* Transaction Type - full width for expense, 2 columns for others */}
+        {watch("type") === "expense" ? (
           <div className="space-y-2">
             <Label>Əməliyyat Növü *</Label>
             <Select
@@ -126,58 +138,185 @@ export default function FormComponent({
                 <SelectItem value="expense">Məxaric</SelectItem>
                 <SelectItem value="transfer">Transfer</SelectItem>
                 <SelectItem value="topup">Hesab artımı</SelectItem>
+                <SelectItem value="refund">Geri qaytarma</SelectItem>
               </SelectContent>
             </Select>
             {errors.type && (
               <p className="text-sm text-red-600">{errors.type.message}</p>
             )}
           </div>
-          {/* Income mode selector when type is income */}
-          {watch("type") === "income" && (
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Type */}
             <div className="space-y-2">
-              <Label>Mədaxil növü</Label>
+              <Label>Əməliyyat Növü *</Label>
               <Select
-                onValueChange={(v) => setIncomeMode(v as "income" | "own")}
-                defaultValue={incomeMode}
+                onValueChange={handleTypeChange}
+                defaultValue={watch("type")}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Seçin" />
+                  <SelectValue placeholder="Növ seçin" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="income">Gəlir</SelectItem>
-                  <SelectItem value="own">Öz büdcəsi</SelectItem>
+                  <SelectItem value="income">Mədaxil</SelectItem>
+                  <SelectItem value="expense">Məxaric</SelectItem>
+                  <SelectItem value="transfer">Transfer</SelectItem>
+                  <SelectItem value="topup">Hesab artımı</SelectItem>
+                  <SelectItem value="refund">Geri qaytarma</SelectItem>
                 </SelectContent>
               </Select>
+              {errors.type && (
+                <p className="text-sm text-red-600">{errors.type.message}</p>
+              )}
             </div>
-          )}
-          {/* Project */}
-          <div className="space-y-2">
-            <Label>Layihə *</Label>
-            <Select
-              onValueChange={handleProjectChange}
-              defaultValue={watch("projectId")}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Layihə seçin" />
-              </SelectTrigger>
-              <SelectContent>
-                {mockData.projects.map((project) => (
-                  <SelectItem key={project.id} value={project.id}>
-                    {project.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.projectId && (
-              <p className="text-sm text-red-600">{errors.projectId.message}</p>
+
+            {/* Dynamic second field based on transaction type */}
+            {watch("type") === "income" && (
+              <div className="space-y-2">
+                <Label>Mədaxil növü</Label>
+                <Select
+                  onValueChange={(v) => setIncomeMode(v as "income" | "own")}
+                  defaultValue={incomeMode}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seçin" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="income">Gəlir</SelectItem>
+                    <SelectItem value="own">Öz büdcəsindən</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {watch("type") === "topup" && (
+              <div className="space-y-2">
+                <Label>Hesab Mərkəzi</Label>
+                <Select
+                  onValueChange={handleTopupTypeChange}
+                  defaultValue={watch("topupType")}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Mərkəz seçin" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="project">Layihə</SelectItem>
+                    <SelectItem value="company">Şirkət</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {watch("type") === "refund" && (
+              <div className="space-y-2">
+                <Label>Şirkət *</Label>
+                <Select
+                  onValueChange={(value) => setValue("refundCompany", value)}
+                  defaultValue={watch("refundCompany")}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Şirkət seçin" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {mockData.companies.map((company) => (
+                      <SelectItem key={company.id} value={company.id}>
+                        {company.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {watch("type") === "transfer" && (
+              <div className="space-y-2">
+                <Label>Hara (Menecer)</Label>
+                <Select
+                  onValueChange={handleToUserChange}
+                  defaultValue={watch("toUserId")}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Menecer seçin" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {mockData.users
+                      .filter((u) => u.role === "user")
+                      .map((user) => (
+                        <SelectItem key={user.id} value={user.id}>
+                          {user.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
             )}
           </div>
-        </div>
+        )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Category (hidden for transfer) */}
-          {watch("type") !== "transfer" &&
-            (watch("type") !== "income" || incomeMode === "own") && (
+        {/* Dynamic second row - conditional fields */}
+        {(watch("type") === "topup" && watch("topupType")) || 
+         (watch("type") !== "transfer" && watch("type") !== "refund") ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Project field for income/expense */}
+            {(watch("type") === "expense" || watch("type") === "income") && (
+              <div className="space-y-2">
+                <Label>Layihə *</Label>
+                <Select
+                  onValueChange={handleProjectChange}
+                  defaultValue={watch("projectId")}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Layihə seçin" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {mockData.projects.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.projectId && (
+                  <p className="text-sm text-red-600">{errors.projectId.message}</p>
+                )}
+              </div>
+            )}
+
+            {/* Second level selection for topup */}
+            {watch("type") === "topup" && watch("topupType") && (
+              <div className="space-y-2">
+                <Label>
+                  {watch("topupType") === "project" ? "Layihə" : "Şirkət"} *
+                </Label>
+                <Select
+                  onValueChange={handleTopupTargetChange}
+                  defaultValue={watch("topupTarget")}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={`${watch("topupType") === "project" ? "Layihə" : "Şirkət"} seçin`} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {watch("topupType") === "project" ? (
+                      mockData.projects.map((project) => (
+                        <SelectItem key={project.id} value={project.id}>
+                          {project.name}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      mockData.companies.map((company) => (
+                        <SelectItem key={company.id} value={company.id}>
+                          {company.title}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Category for income/expense (but not for income with "Gəlir" mode) */}
+            {watch("type") !== "transfer" && watch("type") !== "refund" && 
+             !(watch("type") === "income" && incomeMode === "income") && (
               <div className="space-y-2">
                 <Label>Kateqoriya *</Label>
                 <Select
@@ -206,6 +345,26 @@ export default function FormComponent({
               </div>
             )}
 
+            {/* Custom description field when "other" category is selected */}
+            {watch("category") === "other" && (
+              <div className="space-y-2">
+                <Label>Kateqoriya təsviri *</Label>
+                <Input
+                  {...register("customCategory")}
+                  placeholder="Kateqoriyanı təsvir edin..."
+                />
+                {errors.customCategory && (
+                  <p className="text-sm text-red-600">
+                    {errors.customCategory.message}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        ) : null}
+
+        {/* Amount and Currency row - always present */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Amount */}
           <div className="space-y-2">
             <Label htmlFor="amount">Məbləğ *</Label>
@@ -221,10 +380,8 @@ export default function FormComponent({
               <p className="text-sm text-red-600">{errors.amount.message}</p>
             )}
           </div>
-        </div>
 
-        {/* Currency & Source/Manager (side-by-side) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Currency */}
           <div className="space-y-2">
             <Label>Valyuta</Label>
             <Select
@@ -241,55 +398,9 @@ export default function FormComponent({
               </SelectContent>
             </Select>
           </div>
-
-          {watch("type") === "topup" && (
-            <div className="space-y-2">
-              <Label>Hardan</Label>
-              <Select
-                onValueChange={handleSourceChange}
-                defaultValue={watch("source")}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Mənbə seçin" />
-                </SelectTrigger>
-                <SelectContent>
-                  {mockData.companies.map((company) => (
-                    <SelectItem key={company.id} value={company.id}>
-                      {company.title}
-                    </SelectItem>
-                  ))}
-                  <SelectItem value="own">Öz vəsaiti</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
         </div>
 
-        {/* Transfer target manager (user) */}
-        {watch("type") === "transfer" && (
-          <div className="space-y-2">
-            <Label>Hara (Menecer)</Label>
-            <Select
-              onValueChange={handleToUserChange}
-              defaultValue={watch("toUserId")}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Menecer seçin" />
-              </SelectTrigger>
-              <SelectContent>
-                {mockData.users
-                  .filter((u) => u.role === "user")
-                  .map((user) => (
-                    <SelectItem key={user.id} value={user.id}>
-                      {user.name}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-
-        {/* Receipt upload (required) */}
+        {/* Receipt upload - always present */}
         <div className="space-y-2">
           <Label htmlFor="receipt">Qəbz şəkli </Label>
           <Input
@@ -307,6 +418,7 @@ export default function FormComponent({
           />
         </div>
 
+        {/* Date and Description row - always present */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Date */}
           <div className="space-y-2">

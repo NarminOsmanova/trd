@@ -1,3 +1,11 @@
+export interface Payment {
+  id: string;
+  amount: number;
+  paymentDate: string;
+  description?: string;
+  createdBy: string;
+}
+
 export interface Debt {
   id: string;
   amount: number;
@@ -9,6 +17,7 @@ export interface Debt {
   createdAt: string;
   updatedAt: string;
   createdBy: string;
+  payments?: Payment[]; // Hissə-hissə ödənişlər
 }
 
 export interface DebtFormData {

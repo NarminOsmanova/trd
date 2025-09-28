@@ -5,11 +5,12 @@ export const transactionFormSchema = z.object({
     .string()
     .min(1, 'Layihə seçilməlidir'),
   type: z
-    .enum(['income', 'expense', 'transfer', 'topup'], {
+    .enum(['income', 'expense', 'transfer', 'topup', 'refund'], {
       required_error: 'Əməliyyat növü seçilməlidir'
     }),
   // Category becomes optional; UI will enforce when required by flow
   category: z.string().optional(),
+  customCategory: z.string().optional(),
   amount: z
     .number()
     .min(0.01, 'Məbləğ 0-dan böyük olmalıdır')
@@ -27,11 +28,23 @@ export const transactionFormSchema = z.object({
   receiptUrl: z.string().optional(),
   toProjectId: z.string().optional(),
   toUserId: z.string().optional(),
-}));
+  topupType: z.enum(['project', 'company']).optional(),
+  topupTarget: z.string().optional(),
+  refundCompany: z.string().optional(),
+})).refine((data) => {
+  // If category is "other", customCategory is required
+  if (data.category === "other") {
+    return data.customCategory && data.customCategory.trim().length > 0;
+  }
+  return true;
+}, {
+  message: "Digər kateqoriya seçildikdə təsvir tələb olunur",
+  path: ["customCategory"]
+});
 
 export const transactionFiltersSchema = z.object({
   searchTerm: z.string().optional(),
-  type: z.enum(['income', 'expense','transfer','topup']).optional(),
+  type: z.enum(['income', 'expense','transfer','topup','refund']).optional(),
   category: z.string().optional(),
   projectId: z.string().optional(),
   startDate: z.string().optional(),

@@ -17,7 +17,7 @@ import {
   Clock
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { Debt, DebtFilters } from '../types/debt-type';
+import { Debt, DebtFilters, Payment } from '../types/debt-type';
 import { mockData } from '@/lib/mock-data';
 import { formatCurrency, formatDate, getInitials } from '@/lib/utils';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -37,6 +37,7 @@ interface DebtsTableProps {
   onDeleteDebt: (id: string) => void;
   onMarkAsPaid: (id: string) => void;
   onCreateDebt: () => void;
+  onAddPayment?: (debtId: string, payment: Omit<Payment, 'id'>) => void;
 }
 
 export default function DebtsTable({
@@ -221,7 +222,7 @@ export default function DebtsTable({
                   {/* Amount */}
                   <TableCell>
                     <div className="text-sm font-semibold text-gray-900">
-                      {formatCurrency(debt.amount)} {debt.currency}
+                      {formatCurrency(debt.amount)}
                     </div>
                   </TableCell>
 

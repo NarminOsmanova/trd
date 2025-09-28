@@ -34,7 +34,7 @@ export interface Transaction {
   id: string;
   projectId: string;
   userId: string;
-  type: 'income' | 'expense' | 'transfer' | 'topup';
+  type: 'income' | 'expense' | 'transfer' | 'topup' | 'refund';
   amount: number;
   category: TransactionCategory;
   description?: string;
