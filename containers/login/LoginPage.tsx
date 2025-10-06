@@ -28,6 +28,10 @@ export default function LoginPage() {
       email: 'memmed@trd.az',
       password: 'password123'
     },
+    partner: {
+      email: 'elvin@trd.az',
+      password: 'password123'
+    },
     otp: '123456'
   };
 

@@ -20,6 +20,10 @@ export interface DemoCredentials {
     email: string;
     password: string;
   };
+  partner: {
+    email: string;
+    password: string;
+  };
   otp: string;
 }
 

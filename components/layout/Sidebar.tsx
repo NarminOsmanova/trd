@@ -18,7 +18,8 @@ import {
   ChevronRight,
   Tags,
   Building,
-  CreditCard
+  CreditCard,
+  Handshake
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
@@ -31,6 +32,7 @@ const navigation = [
   { nameKey: 'sidebar.reports', href: '/reports', icon: BarChart3, roles: ['admin', 'user'] },
   { nameKey: 'sidebar.category', href: '/category', icon: Tags, roles: ['admin'] },
   { nameKey: 'sidebar.company', href: '/company', icon: Building, roles: ['admin'] },
+  { nameKey: 'sidebar.partner', href: '/partner', icon: Handshake, roles: ['admin', 'partner'] },
   { nameKey: 'sidebar.debt', href: '/debt', icon: CreditCard, roles: ['admin', 'user'] },
   { nameKey: 'sidebar.notifications', href: '/notifications', icon: Bell, roles: ['admin', 'user'] },
   { nameKey: 'sidebar.settings', href: '/settings', icon: Settings, roles: ['admin'] },
@@ -91,7 +93,8 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                 {user?.name}
               </p>
               <p className="text-xs text-gray-500 truncate">
-                {user.role === 'admin' ? t('sidebar.admin') : t('sidebar.manager')}
+                {user.role === 'admin' ? t('sidebar.admin') : 
+                 user.role === 'partner' ? 'Partnyor' : t('sidebar.manager')}
               </p>
             </div>
           </div>

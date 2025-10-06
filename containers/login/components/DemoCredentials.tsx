@@ -20,6 +20,7 @@ export default function DemoCredentials({ showOtp, credentials }: DemoCredential
       <div className="text-xs text-gray-600 space-y-1">
         <p><strong>Admin:</strong> {credentials.admin.email} / {credentials.admin.password}</p>
         <p><strong>Menecer:</strong> {credentials.user.email} / {credentials.user.password}</p>
+        <p><strong>Partnyor:</strong> {credentials.partner.email} / {credentials.partner.password}</p>
         <p><strong>OTP:</strong> {credentials.otp}</p>
       </div>
     </div>

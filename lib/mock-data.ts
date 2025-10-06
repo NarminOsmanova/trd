@@ -8,6 +8,7 @@ import {
   Category
 } from '@/types';
 import { Debt } from '@/containers/debt/types/debt-type';
+import { PartnerItem } from '@/containers/partner/types/partner-type';
 
 // Mock Users Data
 export const mockUsers: User[] = [
@@ -566,6 +567,75 @@ export const getCompanyTransactionsWithBalance = (companyId: string): Array<Tran
   }).reverse(); // Return in reverse order (newest first)
 };
 
+// Mock Partners Data
+export const mockPartners: PartnerItem[] = [
+  {
+    id: '4', // Same as user ID for Elvin Həsənov
+    name: 'Elvin Həsənov',
+    email: 'elvin@trd.az',
+    phone: '+994501234570',
+    company: 'Elvin Group',
+    sharePercentage: 25,
+    totalInvested: 95000,
+    totalEarned: 139000,
+    isActive: true,
+    createdAt: '2024-01-15T00:00:00Z',
+    updatedAt: '2024-01-15T00:00:00Z'
+  },
+  {
+    id: 'p1',
+    name: 'Elçin Məmmədov',
+    email: 'elcin@partner.az',
+    phone: '+994501234571',
+    company: 'Elçin Group',
+    sharePercentage: 20,
+    totalInvested: 60000,
+    totalEarned: 92000,
+    isActive: true,
+    createdAt: '2024-01-16T00:00:00Z',
+    updatedAt: '2024-01-16T00:00:00Z'
+  },
+  {
+    id: 'p2',
+    name: 'Leyla Əliyeva',
+    email: 'leyla@partner.az',
+    phone: '+994501234572',
+    company: 'Leyla Investments',
+    sharePercentage: 15,
+    totalInvested: 45000,
+    totalEarned: 69000,
+    isActive: true,
+    createdAt: '2024-02-01T00:00:00Z',
+    updatedAt: '2024-02-01T00:00:00Z'
+  },
+  {
+    id: 'p3',
+    name: 'Rəşad Həsənov',
+    email: 'rashad@partner.az',
+    phone: '+994501234573',
+    company: 'Rəşad Capital',
+    sharePercentage: 15,
+    totalInvested: 45000,
+    totalEarned: 54000,
+    isActive: true,
+    createdAt: '2024-02-15T00:00:00Z',
+    updatedAt: '2024-02-15T00:00:00Z'
+  },
+  {
+    id: 'p4',
+    name: 'Günel Vəliyeva',
+    email: 'gunel@partner.az',
+    phone: '+994501234574',
+    company: 'Günel Ventures',
+    sharePercentage: 15,
+    totalInvested: 45000,
+    totalEarned: 54000,
+    isActive: false,
+    createdAt: '2024-03-01T00:00:00Z',
+    updatedAt: '2024-03-01T00:00:00Z'
+  }
+];
+
 // Export all data
 export const mockData = {
   users: mockUsers,
@@ -578,5 +648,6 @@ export const mockData = {
     { id: 'co1', title: 'TRD LLC', logoUrl: '', isActive: true, budgetLimit: 500000, createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' },
     { id: 'co2', title: 'Qrup A', logoUrl: '', isActive: true, budgetLimit: 300000, createdAt: '2024-02-01T00:00:00Z', updatedAt: '2024-02-01T00:00:00Z' }
   ],
-  debts: mockDebts
+  debts: mockDebts,
+  partners: mockPartners
 };

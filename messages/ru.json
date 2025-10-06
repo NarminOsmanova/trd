@@ -8,6 +8,8 @@
     "reports": "Отчеты",
     "category": "Категории",
     "company": "Компании",
+    "partners": "Партнеры",
+    "partnersSubtitle": "Управление и мониторинг партнеров",
     "notifications": "Уведомления",
     "settings": "Настройки"
   },
@@ -18,6 +20,7 @@
     "transactions": "Операции",
     "debt": "Долги",
     "reports": "Отчеты",
+    "partner": "Партнеры",
     "category": "Категории",
     "company": "Компании",
     "notifications": "Уведомления",

@@ -37,6 +37,7 @@ export default function FormComponent({
 }: FormComponentProps) {
   const t = useTranslations();
   const [selectedUsers, setSelectedUsers] = useState<string[]>(initialData?.assignedUsers || []);
+  const [partnerPercentages, setPartnerPercentages] = useState<Record<string, number>>({});
   
   const {
     register,
@@ -91,6 +92,13 @@ export default function FormComponent({
         ? prev.filter(id => id !== userId)
         : [...prev, userId]
     );
+  };
+
+  const updatePartnerPercentage = (userId: string, value: number) => {
+    setPartnerPercentages(prev => ({
+      ...prev,
+      [userId]: value
+    }));
   };
 
   return (
@@ -207,29 +215,50 @@ export default function FormComponent({
 
           <div className="space-y-2">
             <Label>{t('projects.partners')}</Label>
-            <div className="border border-gray-300 rounded-lg p-4 max-h-40 overflow-y-auto">
-              <div className="space-y-2">
+            <div className="border border-gray-300 rounded-lg p-4 max-h-60 overflow-y-auto">
+              <div className="space-y-4">
                 {mockData.users.filter(user => user.role === 'partner').map((user) => (
-                  <label
-                    key={user.id}
-                    className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg"
-                  >
-                    <Checkbox
-                      checked={selectedUsers.includes(user.id)}
-                      onCheckedChange={() => toggleUser(user.id)}
-                    />
-                    <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
-                        <span className="text-xs font-medium text-gray-600">
-                          {user.name?.split(' ').map(n => n[0]).join('').toUpperCase()}
-                        </span>
+                  <div key={user.id} className="space-y-3">
+                    <label className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg">
+                      <Checkbox
+                        checked={selectedUsers.includes(user.id)}
+                        onCheckedChange={() => toggleUser(user.id)}
+                      />
+                      <div className="flex items-center space-x-2">
+                        <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                          <span className="text-xs font-medium text-gray-600">
+                            {user.name?.split(' ').map(n => n[0]).join('').toUpperCase()}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{user?.name}</p>
+                          <p className="text-xs text-gray-500">{user.email}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                        <p className="text-xs text-gray-500">{user.email}</p>
+                    </label>
+                    
+                    {/* Percentage input for selected partners */}
+                    {selectedUsers.includes(user.id) && (
+                      <div className="ml-8 space-y-3 bg-blue-50 p-3 rounded-lg">
+                        <div className="space-y-1">
+                          <Label className="text-xs text-gray-600">Hissə faizi (%)</Label>
+                          <Input
+                            type="number"
+                            min="0"
+                            max="100"
+                            step="0.1"
+                            value={partnerPercentages[user.id] || 0}
+                            onChange={(e) => updatePartnerPercentage(user.id, parseFloat(e.target.value) || 0)}
+                            className="h-8 text-sm"
+                            placeholder="0"
+                          />
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          Hissə: {partnerPercentages[user.id] || 0}%
+                        </div>
                       </div>
-                    </div>
-                  </label>
+                    )}
+                  </div>
                 ))}
               </div>
             </div>

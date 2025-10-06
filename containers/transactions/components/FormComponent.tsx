@@ -61,8 +61,8 @@ export default function FormComponent({
     },
   });
 
-  // Local UI mode for income: 'income' (no category) | 'own' (with category)
-  const [incomeMode, setIncomeMode] = React.useState<"income" | "own">(
+  // Local UI mode for income: 'income' (no category) | 'own' (with category) | 'other' (company balance)
+  const [incomeMode, setIncomeMode] = React.useState<"income" | "own" | "other">(
     "income"
   );
 
@@ -175,15 +175,16 @@ export default function FormComponent({
               <div className="space-y-2">
                 <Label>Mədaxil növü</Label>
                 <Select
-                  onValueChange={(v) => setIncomeMode(v as "income" | "own")}
+                  onValueChange={(v) => setIncomeMode(v as "income" | "own" | "other")}
                   defaultValue={incomeMode}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Seçin" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="income">Gəlir</SelectItem>
+                    <SelectItem value="income">Lahiyədən gələn gəlir</SelectItem>
                     <SelectItem value="own">Öz büdcəsindən</SelectItem>
+                    <SelectItem value="other">Şirkət balans artımı</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -257,23 +258,38 @@ export default function FormComponent({
         {(watch("type") === "topup" && watch("topupType")) || 
          (watch("type") !== "transfer" && watch("type") !== "refund") ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Project field for income/expense */}
+            {/* Project/Company field for income/expense */}
             {(watch("type") === "expense" || watch("type") === "income") && (
               <div className="space-y-2">
-                <Label>Layihə *</Label>
+                <Label>
+                  {watch("type") === "income" && incomeMode === "other" ? "Şirkət *" : "Layihə *"}
+                </Label>
                 <Select
-                  onValueChange={handleProjectChange}
-                  defaultValue={watch("projectId")}
+                  onValueChange={watch("type") === "income" && incomeMode === "other" ? 
+                    (value) => setValue("source", "own") : handleProjectChange}
+                  defaultValue={watch("type") === "income" && incomeMode === "other" ? 
+                    watch("source") : watch("projectId")}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Layihə seçin" />
+                    <SelectValue placeholder={
+                      watch("type") === "income" && incomeMode === "other" ? 
+                        "Şirkət seçin" : "Layihə seçin"
+                    } />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockData.projects.map((project) => (
-                      <SelectItem key={project.id} value={project.id}>
-                        {project.name}
-                      </SelectItem>
-                    ))}
+                    {watch("type") === "income" && incomeMode === "other" ? (
+                      mockData.companies.map((company) => (
+                        <SelectItem key={company.id} value={company.id}>
+                          {company.title}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      mockData.projects.map((project) => (
+                        <SelectItem key={project.id} value={project.id}>
+                          {project.name}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
                 {errors.projectId && (
@@ -314,9 +330,8 @@ export default function FormComponent({
               </div>
             )}
 
-            {/* Category for income/expense (but not for income with "Gəlir" mode) */}
-            {watch("type") !== "transfer" && watch("type") !== "refund" && 
-             !(watch("type") === "income" && incomeMode === "income") && (
+            {/* Category for income/expense (but not for transfer and refund) */}
+            {watch("type") !== "transfer" && watch("type") !== "refund" && (
               <div className="space-y-2">
                 <Label>Kateqoriya *</Label>
                 <Select

@@ -8,6 +8,8 @@
       "reports": "Hesabatlar",
       "category": "Kateqoriyalar",
       "company": "Şirkətlər",
+      "partners": "Partnyorlar",
+      "partnersSubtitle": "Partnyorların idarəetməsi və monitorinqi",
       "notifications": "Bildirişlər",
       "settings": "Tənzimləmələr"
     },
@@ -18,6 +20,7 @@
         "transactions": "Əməliyyatlar",
         "debt": "Borclar",
         "reports": "Hesabatlar",
+        "partner": "Partnyorlar",
         "category": "Kateqoriyalar",
         "company": "Şirkətlər",
         "notifications": "Bildirişlər",

@@ -348,7 +348,7 @@ export default function TransactionsTable({
                     <div className={`text-sm font-medium ${
                       transaction.type === 'income' ? 'text-green-600' : transaction.type === 'expense' ? 'text-red-600' : 'text-blue-600'
                     }`}>
-                      {transaction.type === 'income' ? '+' : transaction.type === 'expense' ? '-' : ''}{formatCurrency(transaction.amount)} {transaction.currency || 'AZN'}
+                      {transaction.type === 'income' ? '+' : transaction.type === 'expense' ? '-' : ''}{formatCurrency(transaction.amount)}
                     </div>
                   </TableCell>
 
