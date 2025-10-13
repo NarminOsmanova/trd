@@ -52,10 +52,33 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
     logout();
   };
 
+  const handleLinkClick = () => {
+    // On mobile, close sidebar after navigation
+    if (typeof window !== 'undefined' && window.innerWidth < 768 && !isCollapsed) {
+      onToggle();
+    }
+  };
+
   return (
+    // <div className={cn(
+    //   "bg-white border-r border-gray-200 flex flex-col transition-all duration-300 h-full overflow-y-auto",
+    //   isCollapsed ? "w-16" : "w-64"
+    // )}>
+    <>
+    {/* Overlay for mobile */}
+    {!isCollapsed && (
+      <div 
+        className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+        onClick={onToggle}
+      />
+    )}
+
+    {/* Sidebar */}
     <div className={cn(
-      "bg-white border-r border-gray-200 flex flex-col transition-all duration-300",
-      isCollapsed ? "w-16" : "w-64"
+      "bg-white border-r border-gray-200 flex flex-col transition-all duration-300 h-full overflow-y-auto",
+      // Mobile: fixed full width when open, hidden when collapsed
+      "md:relative fixed inset-y-0 left-0 z-50",
+      isCollapsed ? "-translate-x-full md:translate-x-0 md:w-16" : "translate-x-0 w-64"
     )}>
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
@@ -112,6 +135,7 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
               <Link
                 key={item.nameKey}
                 href={item.href}
+                onClick={handleLinkClick}
                 className={cn(
                   "flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors group",
                   isActive
@@ -148,5 +172,6 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
         </button>
       </div>
     </div>
+    </>
   );
 }

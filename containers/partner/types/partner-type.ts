@@ -4,7 +4,6 @@ export interface PartnerItem {
   name: string;
   email: string;
   phone?: string;
-  company?: string;
   sharePercentage: number;
   totalInvested: number;
   totalEarned: number;

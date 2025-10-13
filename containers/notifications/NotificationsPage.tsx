@@ -115,22 +115,22 @@ export default function NotificationsPage() {
     <>
       <div className="space-y-6">
         {/* Header Actions */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <Bell className="w-6 h-6 text-blue-600" />
-              <h2 className="text-xl font-semibold text-gray-900">Bildirişlər</h2>
-              {unreadCount > 0 && (
-                <Badge variant="destructive">
-                  {unreadCount} oxunmayan
-                </Badge>
-              )}
-            </div>
+        <div className="flex flex-col gap-4">
+          {/* Title and Badge */}
+          <div className="flex items-center space-x-2">
+            <Bell className="w-6 h-6 text-blue-600" />
+            <h2 className="text-xl font-semibold text-gray-900">Bildirişlər</h2>
+            {unreadCount > 0 && (
+              <Badge variant="destructive">
+                {unreadCount} oxunmayan
+              </Badge>
+            )}
           </div>
 
-          <div className="flex items-center space-x-3">
+          {/* Actions */}
+          <div className="flex flex-col sm:flex-row gap-3">
             <Select value={filter} onValueChange={setFilter}>
-              <SelectTrigger className="w-[200px]">
+              <SelectTrigger className="w-full sm:w-[200px]">
                 <SelectValue placeholder="Filtr seçin" />
               </SelectTrigger>
               <SelectContent>
@@ -144,54 +144,58 @@ export default function NotificationsPage() {
               </SelectContent>
             </Select>
 
-            {unreadCount > 0 && (
-              <Button
-                variant="outline"
-                onClick={handleMarkAllAsRead}
-                className="text-blue-600 border-blue-200 hover:bg-blue-50"
-              >
-                <CheckCheck className="w-4 h-4 mr-2" />
-                Hamısını Oxundu Et
-              </Button>
-            )}
+            <div className="flex gap-2">
+              {unreadCount > 0 && (
+                <Button
+                  variant="outline"
+                  onClick={handleMarkAllAsRead}
+                  className="flex-1 sm:flex-none text-blue-600 border-blue-200 hover:bg-blue-50"
+                >
+                  <CheckCheck className="w-4 h-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Hamısını Oxundu Et</span>
+                </Button>
+              )}
 
-            <Button onClick={handleCreateNotification}>
-              <Plus className="w-4 h-4 mr-2" />
-              Yeni Bildiriş
-            </Button>
+              <Button onClick={handleCreateNotification} className="flex-1 sm:flex-none">
+                <Plus className="w-4 h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Yeni Bildiriş</span>
+                <span className="sm:hidden">Yeni</span>
+              </Button>
+            </div>
           </div>
         </div>
 
         {/* Bulk Actions */}
         {selectedNotifications.length > 0 && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-center justify-between">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
               <span className="text-sm font-medium text-blue-900">
                 {selectedNotifications.length} bildiriş seçilib
               </span>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleBulkMarkAsRead}
-                  className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                  className="flex-1 sm:flex-none text-blue-600 border-blue-200 hover:bg-blue-50"
                 >
-                  <Check className="w-3 h-3 mr-1" />
-                  Oxundu Et
+                  <Check className="w-3 h-3 sm:mr-1" />
+                  <span className="hidden xs:inline">Oxundu Et</span>
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleBulkDelete}
-                  className="text-red-600 border-red-200 hover:bg-red-50"
+                  className="flex-1 sm:flex-none text-red-600 border-red-200 hover:bg-red-50"
                 >
-                  <XCircle className="w-3 h-3 mr-1" />
-                  Sil
+                  <XCircle className="w-3 h-3 sm:mr-1" />
+                  <span className="hidden xs:inline">Sil</span>
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setSelectedNotifications([])}
+                  className="flex-1 sm:flex-none"
                 >
                   Ləğv Et
                 </Button>

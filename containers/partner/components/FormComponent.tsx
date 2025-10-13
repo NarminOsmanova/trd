@@ -41,7 +41,6 @@ export default function FormComponent({
       name: '',
       email: '',
       phone: '',
-      company: '',
       sharePercentage: 0,
       isActive: true,
       ...initialData
@@ -110,19 +109,6 @@ export default function FormComponent({
           />
           {errors.phone && (
             <p className="text-sm text-red-600">{errors.phone.message}</p>
-          )}
-        </div>
-
-        {/* Company */}
-        <div className="space-y-2">
-          <Label htmlFor="company">Şirkət</Label>
-          <Input
-            {...register('company')}
-            id="company"
-            placeholder="Şirkət adı"
-          />
-          {errors.company && (
-            <p className="text-sm text-red-600">{errors.company.message}</p>
           )}
         </div>
 

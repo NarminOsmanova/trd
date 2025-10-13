@@ -95,34 +95,34 @@ export default function UsersManagementTab({ onCreateOrUpdate }: UsersManagement
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
-              <tr className="text-left text-gray-600">
-                <th className="py-2">Ad Soyad</th>
-                <th className="py-2">Email</th>
-                <th className="py-2">Vəzifə</th>
-                <th className="py-2">Rol</th>
-                <th className="py-2">Status</th>
-                <th className="py-2">Tarix</th>
-                <th className="py-2 text-right">Əməllər</th>
+              <tr className="text-left text-gray-600 border-b">
+                <th className="py-3 px-4">Ad Soyad</th>
+                <th className="py-3 px-4">Email</th>
+                <th className="py-3 px-4">Vəzifə</th>
+                <th className="py-3 px-4">Rol</th>
+                <th className="py-3 px-4">Status</th>
+                <th className="py-3 px-4">Tarix</th>
+                <th className="py-3 px-4 text-right">Əməllər</th>
               </tr>
             </thead>
             <tbody>
               {filteredUsers.map(u => (
-                <tr key={u.id} className="border-t">
-                  <td className="py-2">{u.name}</td>
-                  <td className="py-2">{u.email}</td>
-                  <td className="py-2">{u.position || '-'}</td>
-                  <td className="py-2">
+                <tr key={u.id} className="border-t hover:bg-gray-50 transition-colors">
+                  <td className="py-3 px-4 font-medium text-gray-900">{u.name}</td>
+                  <td className="py-3 px-4 text-gray-600">{u.email}</td>
+                  <td className="py-3 px-4 text-gray-600">{u.position || '-'}</td>
+                  <td className="py-3 px-4">
                     <Badge variant={u.role === 'admin' ? 'secondary' : 'default'}>
                       {u.role === 'admin' ? 'Admin' : u.role === 'partner' ? 'Partnyor' : 'Əməkdaş'}
                     </Badge>
                   </td>
-                  <td className="py-2">
+                  <td className="py-3 px-4">
                     <Badge variant={u.isActive ? 'success' : 'destructive'}>
                       {u.isActive ? 'Aktiv' : 'Qeyri-aktiv'}
                     </Badge>
                   </td>
-                  <td className="py-2 text-gray-500">{formatDate(u.createdAt)}</td>
-                  <td className="py-2 text-right">
+                  <td className="py-3 px-4 text-gray-500">{formatDate(u.createdAt)}</td>
+                  <td className="py-3 px-4 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <Button variant="outline" size="sm" onClick={() => startEdit(u)}>Düzəlt</Button>
                     </div>

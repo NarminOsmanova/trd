@@ -3,7 +3,6 @@
 import React from 'react';
 import { useTranslations } from 'next-intl';
 import { 
-  Building, 
   Phone, 
   Mail,
   Percent,
@@ -174,32 +173,6 @@ export default function PartnerView({
               </div>
             </div>
           )}
-
-          {partner.company && (
-            <div className="bg-white rounded-lg p-4 border border-gray-200">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <Building className="w-5 h-5 text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Şirkət</p>
-                  <p className="text-lg font-semibold text-gray-900">{partner.company}</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="bg-white rounded-lg p-4 border border-gray-200">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                <Mail className="w-5 h-5 text-orange-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Email</p>
-                <p className="text-lg font-semibold text-orange-600">{partner.email}</p>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Financial Summary */}

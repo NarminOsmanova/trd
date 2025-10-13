@@ -103,9 +103,6 @@ export default function PartnerTable({
                   <div>
                     <p className="font-medium text-gray-900">{partner.name}</p>
                     <p className="text-sm text-gray-500">{partner.email}</p>
-                    {partner.company && (
-                      <p className="text-xs text-gray-400">{partner.company}</p>
-                    )}
                   </div>
                 </div>
               </TableCell>

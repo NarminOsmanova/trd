@@ -44,8 +44,7 @@ export default function PartnerPage() {
   const filteredPartners = partners.filter(partner => {
     // Search filter
     const matchesSearch = partner.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      partner.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (partner.company && partner.company.toLowerCase().includes(searchTerm.toLowerCase()));
+      partner.email.toLowerCase().includes(searchTerm.toLowerCase());
     
     // Role-based filter: partners only see themselves
     if (currentUserRole === 'partner') {
@@ -646,7 +645,6 @@ export default function PartnerPage() {
           name: editingPartner.name,
           email: editingPartner.email,
           phone: editingPartner.phone,
-          company: editingPartner.company,
           sharePercentage: editingPartner.sharePercentage,
           isActive: editingPartner.isActive
         } : undefined}

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Bell, Globe, User } from 'lucide-react';
+import { Bell, Globe, User ,Menu} from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTranslations, useLocale } from 'next-intl';
 import { useRouter, usePathname } from 'next/navigation';
@@ -10,9 +10,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/u
 interface HeaderProps {
   title: string;
   subtitle?: string;
+  onMenuClick?: () => void;
 }
 
-export default function Header({ title, subtitle }: HeaderProps) {
+
+export default function Header({ title, subtitle, onMenuClick }: HeaderProps) {
   const { user } = useAuth();
   const t = useTranslations();
   const locale = useLocale();
@@ -38,8 +40,17 @@ export default function Header({ title, subtitle }: HeaderProps) {
       <div className="hidden md:block">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
+             {/* Hamburger Menu Button */}
+             <button
+              title="Menu"
+              aria-label="Menu"
+              onClick={onMenuClick}
+              className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
             {/* Title Section */}
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 ml-2">
               <h1 className="text-2xl font-semibold text-gray-900 truncate">{title}</h1>
               {subtitle && (
                 <p className="text-sm text-gray-600 mt-1 truncate">{subtitle}</p>
@@ -101,8 +112,18 @@ export default function Header({ title, subtitle }: HeaderProps) {
       <div className="md:hidden">
         <div className="px-4 py-3">
           <div className="flex items-center justify-between">
+            {/* Hamburger Menu Button */}
+            <button
+              title="Menu"
+              aria-label="Menu"
+              onClick={onMenuClick}
+              className="p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+
             {/* Mobile Title */}
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 ml-2">
               <h1 className="text-lg font-semibold text-gray-900 truncate">{title}</h1>
               {subtitle && (
                 <p className="text-xs text-gray-600 truncate">{subtitle}</p>

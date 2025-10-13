@@ -18,10 +18,30 @@ export default function DashboardLayout({
   title, 
   subtitle 
 }: DashboardLayoutProps) {
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  // Initialize sidebar state: collapsed on mobile, expanded on desktop
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const t = useTranslations();
+
+  // Set initial sidebar state based on screen size
+  useEffect(() => {
+    const handleResize = () => {
+      // On desktop (>= 768px), expand sidebar; on mobile, keep it collapsed
+      if (window.innerWidth >= 768) {
+        setIsSidebarCollapsed(false);
+      } else {
+        setIsSidebarCollapsed(true);
+      }
+    };
+
+    // Set initial state
+    handleResize();
+
+    // Add resize listener
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -46,16 +66,32 @@ export default function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar */}
-      <Sidebar 
-        isCollapsed={isSidebarCollapsed} 
-        onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} 
-      />
+      {/* Sidebar - Fixed */}
+        {/* Sidebar - Fixed on desktop, overlay on mobile */}
+        <div className="hidden md:block sticky top-0 h-screen">
+        <Sidebar 
+          isCollapsed={isSidebarCollapsed} 
+          onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} 
+        />
+      </div>
+
+      {/* Mobile Sidebar (Overlay) */}
+      <div className="md:hidden">
+        <Sidebar 
+          isCollapsed={isSidebarCollapsed} 
+          onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} 
+        />
+      </div>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <Header title={title} subtitle={subtitle} />
+        {/* <Header title={title} subtitle={subtitle} /> */}
+        <Header 
+          title={title} 
+          subtitle={subtitle}
+          onMenuClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+        />
 
         {/* Page Content */}
         <main className="flex-1 p-6">
