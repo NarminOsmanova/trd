@@ -20,12 +20,15 @@ export default function DashboardLayout({
 }: DashboardLayoutProps) {
   // Initialize sidebar state: collapsed on mobile, expanded on desktop
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const t = useTranslations();
 
-  // Set initial sidebar state based on screen size
+  // Set mounted state and initial sidebar state
   useEffect(() => {
+    setMounted(true);
+    
     const handleResize = () => {
       // On desktop (>= 768px), expand sidebar; on mobile, keep it collapsed
       if (window.innerWidth >= 768) {
@@ -64,11 +67,15 @@ export default function DashboardLayout({
     return null;
   }
 
+  // Prevent hydration mismatch by not rendering sidebar until mounted
+  if (!mounted) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 flex">
-      {/* Sidebar - Fixed */}
-        {/* Sidebar - Fixed on desktop, overlay on mobile */}
-        <div className="hidden md:block sticky top-0 h-screen">
+      {/* Sidebar - Fixed on desktop, overlay on mobile */}
+      <div className="hidden md:block sticky top-0 h-screen">
         <Sidebar 
           isCollapsed={isSidebarCollapsed} 
           onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)} 
@@ -85,8 +92,6 @@ export default function DashboardLayout({
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
-        {/* <Header title={title} subtitle={subtitle} /> */}
         <Header 
           title={title} 
           subtitle={subtitle}

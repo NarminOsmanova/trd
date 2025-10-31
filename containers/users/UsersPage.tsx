@@ -12,14 +12,14 @@ import {
   List
 } from 'lucide-react';
 import { mockData } from '@/lib/mock-data';
-import { User, UserFilters, UserStats } from './types/users-type';
+import { User } from './types/users-type';
 import UsersTable from './components/UsersTable';
 import UsersCard from './components/UsersCard';
 import UserViewModal from './components/UserViewModal';
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>(mockData.users);
-  const [filters, setFilters] = useState<UserFilters>({
+  const [filters, setFilters] = useState<any>({
     searchTerm: '',
     role: undefined,
     status: undefined
@@ -46,7 +46,7 @@ export default function UsersPage() {
   }, [users, filters]);
 
   // Calculate user statistics
-  const userStats: UserStats = useMemo(() => {
+  const userStats: any = useMemo(() => {
     return {
       totalUsers: users.length,
       activeUsers: users.filter(u => u.isActive).length,
@@ -57,8 +57,8 @@ export default function UsersPage() {
     };
   }, [users]);
 
-  const handleFiltersChange = (newFilters: Partial<UserFilters>) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
+  const handleFiltersChange = (newFilters: any) => {
+    setFilters((prev: any) => ({ ...prev, ...newFilters }));
   };
 
   const handleViewUser = (userId: string) => {

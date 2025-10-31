@@ -133,7 +133,45 @@
       "totalProjects": "Ümumi Layihələr",
       "activeProjects": "Aktiv Layihələr",
       "completedProjects": "Tamamlandı"
+    },
+    "settings": {
+      "users": {
+        "title": "İstifadəçilər",
+        "createTitle": "Yeni İstifadəçi Əlavə Et",
+        "updateTitle": "İstifadəçini Yenilə",
+        "viewTitle": "İstifadəçi Məlumatları",
+        "phone": "Telefon (+994...)",
+        "role": "Rol",
+        "employee": "Əməkdaş",
+        "partner": "Partnyor",
+        "admin": "Admin",
+        "add": "Əlavə et",
+        "update": "Yenilə",
+        "cancel": "Ləğv et",
+        "refresh": "Yenilə",
+        "noUsers": "İstifadəçi tapılmadı",
+        "name": "Ad Soyad",
+        "email": "Email",
+        "position": "Vəzifə",
+        "status": "Status",
+        "date": "Tarix",
+        "actions": "Əməllər",
+        "active": "Aktiv",
+        "inactive": "Qeyri-aktiv",
+        "edit": "Düzəlt",
+        "view": "Baxış",
+        "close": "Bağla",
+        "createdDate": "Yaradılma Tarixi",
+        "additionalInfo": "Əlavə Məlumat",
+        "userType": "İstifadəçi Tipi",
+        "language": "Dil",
+        "userNotFound": "İstifadəçi tapılmadı",
+        "generating": "Yaradılır...",
+        "linkGeneratedSuccess": "Qeydiyyat linki uğurla yaradıldı!",
+        "linkCopiedToClipboard": "Link panoya kopyalandı",
+        "linkGenerationFailed": "Link yaradılarkən xəta baş verdi",
+        "updateInProgress": "İstifadəçi yenilənir...",
+        "errorOccurred": "Xəta baş verdi"
+      }
     }
   }
-  
-   

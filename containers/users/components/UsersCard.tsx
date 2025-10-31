@@ -13,7 +13,7 @@ import {
   TrendingUp,
   Calendar
 } from 'lucide-react';
-import { User, UserFilters } from '../types/users-type';
+import { User } from '../types/users-type';
 import { mockData } from '@/lib/mock-data';
 import { formatDate, getRoleLabel, getInitials } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -24,8 +24,8 @@ import PaginationWrapper from '@/components/ui/pagination-wrapper';
 
 interface UsersCardProps {
   users: User[];
-  filters: UserFilters;
-  onFiltersChange: (filters: Partial<UserFilters>) => void;
+  filters: any;
+  onFiltersChange: (filters: any) => void;
   onViewUser: (id: string) => void;
   onToggleStatus: (id: string) => void;
 }

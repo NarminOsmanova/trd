@@ -5,7 +5,7 @@ export interface User {
   name?: string;
   role: 'admin' | 'user' | 'partner';
   avatar?: string;
-  phone: string;
+  phone?: string;
   position?: string;
   isActive?: boolean;
   createdAt: string;

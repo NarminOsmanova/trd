@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   User, 
   Shield, 
@@ -18,8 +18,11 @@ import PreferencesTab from './components/PreferencesTab';
 import SystemTab from './components/SystemTab';
 import UsersManagementTab from './components/UsersManagementTab';
 
-export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState('profile');
+interface SettingsPageProps {
+  activeTab: string;
+}
+
+export default function SettingsPage({ activeTab }: SettingsPageProps) {
 
   // Mock system info
   const systemInfo: SystemInfo = {
@@ -132,7 +135,7 @@ export default function SettingsPage() {
       {/* Settings Content */}
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Sidebar */}
-        <SettingsSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        <SettingsSidebar activeTab={activeTab} />
 
         {/* Main Content */}
         <div className="flex-1">

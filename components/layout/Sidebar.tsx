@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -47,23 +47,31 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const t = useTranslations();
+  const [isMobile, setIsMobile] = useState(false);
 
   const handleLogout = () => {
     logout();
   };
 
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   const handleLinkClick = () => {
     // On mobile, close sidebar after navigation
-    if (typeof window !== 'undefined' && window.innerWidth < 768 && !isCollapsed) {
+    if (isMobile && !isCollapsed) {
       onToggle();
     }
   };
 
   return (
-    // <div className={cn(
-    //   "bg-white border-r border-gray-200 flex flex-col transition-all duration-300 h-full overflow-y-auto",
-    //   isCollapsed ? "w-16" : "w-64"
-    // )}>
+   
     <>
     {/* Overlay for mobile */}
     {!isCollapsed && (

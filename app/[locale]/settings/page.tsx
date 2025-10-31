@@ -1,13 +1,5 @@
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import SettingsPage from '@/containers/settings/SettingsPage';
+import { redirect } from 'next/navigation';
 
 export default function Page() {
-  return (
-    <DashboardLayout 
-      title="Tənzimləmələr" 
-      subtitle="Hesab və sistem tənzimləmələri"
-    >
-      <SettingsPage />
-    </DashboardLayout>
-  );
+  redirect('/settings/profile');
 }
