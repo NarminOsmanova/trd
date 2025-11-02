@@ -6,27 +6,55 @@ import DialogComponent from '@/components/modals/DialogComponent';
 import { Badge } from '@/components/ui/badge';
 import { Building } from 'lucide-react';
 import { 
-  getCompanyById, 
   getCompanyAccountBalance, 
   getCompanyTransactionsWithBalance, 
   getUserById 
 } from '@/lib/mock-data';
 import { formatCurrency, formatDate, getCategoryLabel, getTransactionTypeLabel } from '@/lib/utils';
-import { CompanyItem } from '../types/company-type';
+import { Company } from '../types/company-type';
 
 interface CompanyViewModalProps {
   isOpen: boolean;
   onClose: () => void;
-  company: CompanyItem | null;
+  company: Company | null;
+  isLoading?: boolean;
 }
 
-export default function CompanyViewModal({ isOpen, onClose, company }: CompanyViewModalProps) {
+const getCurrencySymbol = (currency: number) => {
+  switch (currency) {
+    case 0: return 'AZN';
+    case 1: return 'USD';
+    case 2: return 'EUR';
+    default: return 'AZN';
+  }
+};
+
+export default function CompanyViewModal({ isOpen, onClose, company, isLoading }: CompanyViewModalProps) {
   const t = useTranslations();
   
-  if (!isOpen || !company) return null;
+  if (!isOpen) return null;
 
-  const accountBalance = getCompanyAccountBalance(company.id);
-  const transactionsWithBalance = getCompanyTransactionsWithBalance(company.id);
+  // Loading state
+  if (isLoading || !company) {
+    return (
+      <DialogComponent
+        open={isOpen}
+        setOpen={onClose}
+        title={t('company.loading')}
+        size="xl"
+        maxHeight="max-h-[95vh]"
+      >
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-3 text-gray-600">{t('company.loadingData')}</span>
+        </div>
+      </DialogComponent>
+    );
+  }
+
+  // Mock data for transactions (API-dən gəlməyənə qədər)
+  const accountBalance = getCompanyAccountBalance(company.id.toString());
+  const transactionsWithBalance = getCompanyTransactionsWithBalance(company.id.toString());
 
   return (
     <DialogComponent
@@ -39,9 +67,10 @@ export default function CompanyViewModal({ isOpen, onClose, company }: CompanyVi
       <div className="space-y-6">
         {/* Company Header */}
         <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
-          {company.logoUrl ? (
+          {company.logo ? (
             <div className="w-16 h-16 relative rounded-lg overflow-hidden border">
-              <img src={company.logoUrl} alt={company.title} className="object-cover w-full h-full" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={company.logo} alt={company.title} className="object-cover w-full h-full" />
             </div>
           ) : (
             <div className="w-16 h-16 bg-gray-200 rounded-lg flex items-center justify-center">
@@ -54,29 +83,37 @@ export default function CompanyViewModal({ isOpen, onClose, company }: CompanyVi
               <Badge variant={company.isActive ? "default" : "secondary"}>
                 {company.isActive ? t('common.active') : t('common.inactive')}
               </Badge>
-              <span className="text-sm text-gray-600">
-                Yaradılma: {formatDate(company.createdAt)}
-              </span>
+              {company.createdAt && (
+                <span className="text-sm text-gray-600">
+                  {t('company.createdAt')}: {formatDate(company.createdAt)}
+                </span>
+              )}
             </div>
           </div>
         </div>
 
         {/* Budget Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-green-50 rounded-lg p-4 text-center">
+            <p className="text-sm text-gray-600 mb-2">{t('company.currentBalance')}</p>
+            <p className="text-xl font-bold text-green-600">
+              {company.currentBalance} {getCurrencySymbol(company.currency)}
+            </p>
+          </div>
           <div className="bg-blue-50 rounded-lg p-4 text-center">
-            <p className="text-sm text-gray-600 mb-2">{t('projects.budgetLimit')}</p>
+            <p className="text-sm text-gray-600 mb-2">{t('company.budgetLimit')}</p>
             <p className="text-xl font-bold text-blue-600">
-              {company.budgetLimit ? formatCurrency(company.budgetLimit) : '—'}
+              {company.budgetLimit ? `${company.budgetLimit} ${getCurrencySymbol(company.currency)}` : '—'}
             </p>
           </div>
           <div className="bg-purple-50 rounded-lg p-4 text-center">
-            <p className="text-sm text-gray-600 mb-2">{t('projects.companyAccount')}</p>
+            <p className="text-sm text-gray-600 mb-2">{t('company.companyAccount')}</p>
             <p className="text-xl font-bold text-purple-600">
               {formatCurrency(accountBalance)}
             </p>
           </div>
           <div className="bg-gray-50 rounded-lg p-4 text-center">
-            <p className="text-sm text-gray-600 mb-2">{t('projects.transactionCount')}</p>
+            <p className="text-sm text-gray-600 mb-2">{t('company.transactionCount')}</p>
             <p className="text-xl font-bold text-gray-600">
               {transactionsWithBalance.length}
             </p>
@@ -85,7 +122,7 @@ export default function CompanyViewModal({ isOpen, onClose, company }: CompanyVi
 
         {/* Transactions */}
         <div className="bg-gray-50 rounded-lg p-4">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('projects.projectTransactions')}</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">{t('company.transactions')}</h3>
           
           {transactionsWithBalance.length > 0 ? (
             <>
@@ -94,7 +131,7 @@ export default function CompanyViewModal({ isOpen, onClose, company }: CompanyVi
                 <div>{t('projects.transaction')}</div>
                 <div className="text-center">{t('common.user')}</div>
                 <div className="text-right">{t('common.amount')}</div>
-                <div className="text-right">{t('projects.companyAccount')}</div>
+                <div className="text-right">{t('company.companyAccount')}</div>
               </div>
               
               <div className="space-y-2 max-h-96 overflow-y-auto">
@@ -133,7 +170,7 @@ export default function CompanyViewModal({ isOpen, onClose, company }: CompanyVi
           ) : (
             <div className="text-center py-8">
               <Building className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-              <p className="text-gray-500">{t('projects.noTransactions')}</p>
+              <p className="text-gray-500">{t('company.noTransactions')}</p>
             </div>
           )}
         </div>

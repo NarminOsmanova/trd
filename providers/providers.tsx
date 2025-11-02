@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { NextIntlClientProvider } from 'next-intl';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { Toaster } from 'sonner';
 import { useState, type ReactNode } from 'react';
 import { AuthProvider } from '@/contexts/AuthContext';
 
@@ -48,24 +49,20 @@ export function Providers({ children, locale, messages }: ProvidersProps) {
     <QueryClientProvider client={queryClient}>
       <NextIntlClientProvider locale={locale} messages={messages}>
         <AuthProvider>
-          <ToastContainer
-            style={{ zIndex: 999999999 }}
-            position="top-right"
-            autoClose={3000}
-            hideProgressBar={false}
-            newestOnTop
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-            theme="light"
-            toastStyle={{
-              fontSize: '14px',
-              fontWeight: 500,
-              padding: '12px',
-              borderRadius: '8px',
-              boxShadow: '0px 2px 10px rgba(0,0,0,0.1)',
+          {/* Sonner - Modern toast library */}
+          <Toaster 
+            position="top-right" 
+            richColors 
+            expand={true}
+            duration={3000}
+            toastOptions={{
+              style: {
+                fontSize: '14px',
+                fontWeight: 500,
+                padding: '12px 16px',
+                borderRadius: '8px',
+                boxShadow: '0px 4px 12px rgba(0,0,0,0.15)',
+              },
             }}
           />
           {children}

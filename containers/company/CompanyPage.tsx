@@ -1,100 +1,190 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
-import { Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React, { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { toast } from 'sonner';
 import DialogComponent from '@/components/modals/DialogComponent';
 import CompaniesTable from './components/CompaniesTable';
 import CompanyForm from './components/FormComponent';
 import CompanyViewModal from './components/CompanyViewModal';
-import { mockData } from '@/lib/mock-data';
-import { CompanyItem } from './types/company-type';
+import { 
+  useCompanies, 
+  useCompany, 
+  useCreateCompany, 
+  useUpdateCompany, 
+  useDeleteCompany 
+} from '@/lib/hooks/useCompany';
+import { Company } from './types/company-type';
+import { CompanyFormData } from './constants/validations';
 
 const CompanyPage = () => {
+  const t = useTranslations('company');
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editing, setEditing] = useState<CompanyItem | null>(null);
-  const [viewing, setViewing] = useState<CompanyItem | null>(null);
-  const [companies, setCompanies] = useState<CompanyItem[]>(() => {
-    // @ts-ignore
-    return (mockData.companies as CompanyItem[] | undefined) || [];
+  const [editingCompanyId, setEditingCompanyId] = useState<number | null>(null);
+  const [editingCompany, setEditingCompany] = useState<Company | null>(null);
+  const [viewingCompanyId, setViewingCompanyId] = useState<number | null>(null);
+  const [viewingCompany, setViewingCompany] = useState<Company | null>(null);
+  
+  const [filters, setFilters] = useState({
+    search: '',
+    pageNumber: 1,
+    pageSize: 10,
   });
 
-  const openCreate = () => { setEditing(null); setIsFormOpen(true); };
-  const openEdit = (item: CompanyItem) => { setEditing(item); setIsFormOpen(true); };
-  const openView = (item: CompanyItem) => { setViewing(item); };
+  // API Hooks
+  const { 
+    companies, 
+    pagination, 
+    isLoading, 
+    refetchCompanies 
+  } = useCompanies(filters);
 
-  const handleSubmit = (data: { title: string; logoUrl?: string; isActive?: boolean; budgetLimit?: number }) => {
-    if (editing) {
-      setCompanies(prev => prev.map(c => c.id === editing.id ? {
-        ...editing,
-        title: data.title,
-        logoUrl: data.logoUrl,
-        isActive: data.isActive ?? editing.isActive,
-        budgetLimit: data.budgetLimit,
-        updatedAt: new Date().toISOString()
-      } : c));
-    } else {
-      const newItem: CompanyItem = {
-        id: Math.random().toString(36).slice(2),
-        title: data.title,
-        logoUrl: data.logoUrl,
-        isActive: true,
-        budgetLimit: data.budgetLimit,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      };
-      setCompanies(prev => [newItem, ...prev]);
+  // Hook for editing
+  const { data: companyData, isLoading: isLoadingCompany } = useCompany(
+    editingCompanyId, 
+    !!editingCompanyId
+  );
+
+  // Hook for viewing
+  const { data: viewCompanyData, isLoading: isLoadingViewCompany } = useCompany(
+    viewingCompanyId, 
+    !!viewingCompanyId
+  );
+
+  const createMutation = useCreateCompany();
+  const updateMutation = useUpdateCompany();
+  const deleteMutation = useDeleteCompany();
+
+  // Update editing company when data is fetched
+  useEffect(() => {
+    if (companyData?.responseValue) {
+      setEditingCompany(companyData.responseValue);
     }
+  }, [companyData]);
+
+  // Update viewing company when data is fetched
+  useEffect(() => {
+    if (viewCompanyData?.responseValue) {
+      setViewingCompany(viewCompanyData.responseValue);
+    }
+  }, [viewCompanyData]);
+
+  const handleFiltersChange = (newFilters: Partial<typeof filters>) => {
+    setFilters((prev) => ({ ...prev, ...newFilters }));
+  };
+
+  const openCreate = () => {
+    setEditingCompanyId(null);
+    setEditingCompany(null);
+    setIsFormOpen(true);
+  };
+
+  const openEdit = (company: Company) => {
+    setEditingCompanyId(company.id);
+    setEditingCompany(null);
+    setIsFormOpen(true);
+  };
+
+  const openView = (company: Company) => {
+    setViewingCompanyId(company.id);
+    setViewingCompany(null); // Clear previous data first
+  };
+
+  const closeView = () => {
+    setViewingCompanyId(null);
+    setViewingCompany(null);
+  };
+
+  const handleCloseForm = () => {
     setIsFormOpen(false);
+    setEditingCompanyId(null);
+    setEditingCompany(null);
   };
 
-  const handleDelete = (id: string) => {
-    setCompanies(prev => prev.filter(c => c.id !== id));
+  const handleFormSubmit = async (data: CompanyFormData) => {
+    try {
+      if (editingCompany) {
+        const updateData = {
+          id: editingCompany.id,
+          title: data.title,
+          logo: data.logo,
+          currentBalance: data.currentBalance,
+          currency: parseInt(data.currency),
+          budgetLimit: data.budgetLimit,
+        };
+        const response = await updateMutation.mutateAsync(updateData);
+        toast.success(response.message || t('updateSuccess'));
+      } else {
+        const createData = {
+          title: data.title,
+          logo: data.logo,
+          currentBalance: data.currentBalance,
+          currency: parseInt(data.currency),
+          budgetLimit: data.budgetLimit,
+        };
+        const response = await createMutation.mutateAsync(createData);
+        toast.success(response.message || t('createSuccess'));
+      }
+      setIsFormOpen(false);
+      setEditingCompanyId(null);
+      setEditingCompany(null);
+      refetchCompanies();
+    } catch (error: unknown) {
+      console.error('Form submission error:', error);
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err?.response?.data?.message || t('error'));
+      throw error;
+    }
   };
 
-  const handleToggleActive = (id: string) => {
-    setCompanies(prev => prev.map(c => c.id === id ? { ...c, isActive: !c.isActive, updatedAt: new Date().toISOString() } : c));
+  const handleDelete = async (id: number) => {
+    try {
+      const response = await deleteMutation.mutateAsync(id);
+      toast.success(response.message || t('deleteSuccess'));
+      refetchCompanies();
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } };
+      toast.error(err?.response?.data?.message || t('deleteError'));
+    }
   };
-
-  const sorted = useMemo(() => companies, [companies]);
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold text-gray-900">Şirkətlər</h2>
-        <Button onClick={openCreate} className="inline-flex items-center">
-          <Plus className="w-4 h-4 mr-2" />Yeni Şirkət
-        </Button>
-      </div>
 
-      <CompaniesTable 
-        data={sorted}
+      <CompaniesTable
+        companies={companies}
+        pagination={pagination}
+        filters={filters}
+        onFiltersChange={handleFiltersChange}
         onEdit={openEdit}
         onDelete={handleDelete}
-        onToggleActive={handleToggleActive}
         onView={openView}
+        onCreate={openCreate}
+        isLoading={isLoading}
       />
 
       <DialogComponent
         open={isFormOpen}
-        setOpen={setIsFormOpen}
-        title={editing ? 'Şirkəti Yenilə' : 'Yeni Şirkət'}
-        size="md"
+        setOpen={handleCloseForm}
+        title={editingCompanyId ? t('editCompany') : t('newCompany')}
+        size="lg"
       >
         <CompanyForm
-          initialData={editing ? { title: editing.title, logoUrl: editing.logoUrl, isActive: editing.isActive, budgetLimit: editing.budgetLimit } : undefined}
-          onSubmit={handleSubmit}
-          onCancel={() => setIsFormOpen(false)}
+          initialData={editingCompany}
+          onSubmit={handleFormSubmit}
+          onCancel={handleCloseForm}
+          isLoading={isLoadingCompany}
         />
       </DialogComponent>
 
       <CompanyViewModal
-        isOpen={!!viewing}
-        onClose={() => setViewing(null)}
-        company={viewing}
+        isOpen={!!viewingCompanyId}
+        onClose={closeView}
+        company={viewingCompany}
+        isLoading={isLoadingViewCompany}
       />
     </div>
   );
-}
+};
 
-export default CompanyPage
+export default CompanyPage;

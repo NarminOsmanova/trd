@@ -2,9 +2,12 @@ import { z } from 'zod';
 
 export const companyFormSchema = z.object({
   title: z.string().min(2, 'Başlıq ən az 2 simvol'),
-  // Accepts data URL string from uploaded image or empty/undefined
-  logoUrl: z.string().optional().or(z.literal('')),
-  isActive: z.boolean().optional(),
+  logo: z.instanceof(File).optional(),
+  currentBalance: z.preprocess(
+    (val) => (val === '' ? 0 : Number(val)),
+    z.number().min(0, 'Cari balans mənfi ola bilməz')
+  ),
+  currency: z.enum(['0', '1', '2'], { required_error: 'Valyuta seçin' }),
   budgetLimit: z
     .preprocess(
       (val) => (val === '' ? undefined : Number(val)),

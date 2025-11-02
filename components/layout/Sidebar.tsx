@@ -19,7 +19,8 @@ import {
   Tags,
   Building,
   CreditCard,
-  Handshake
+  Handshake,
+  Briefcase
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
@@ -33,6 +34,7 @@ const navigation = [
   { nameKey: 'sidebar.category', href: '/category', icon: Tags, roles: ['admin'] },
   { nameKey: 'sidebar.company', href: '/company', icon: Building, roles: ['admin'] },
   { nameKey: 'sidebar.partner', href: '/partner', icon: Handshake, roles: ['admin', 'partner'] },
+  { nameKey: 'sidebar.position', href: '/position', icon: Briefcase, roles: ['admin', 'user'] },
   { nameKey: 'sidebar.debt', href: '/debt', icon: CreditCard, roles: ['admin', 'user'] },
   { nameKey: 'sidebar.notifications', href: '/notifications', icon: Bell, roles: ['admin', 'user'] },
   { nameKey: 'sidebar.settings', href: '/settings', icon: Settings, roles: ['admin'] },

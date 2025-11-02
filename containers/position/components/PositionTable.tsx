@@ -2,16 +2,20 @@
 
 import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Button } from '@/components/ui/button';
+import { 
+  Edit, 
+  Trash2, 
+  Search,
+  Plus
+} from 'lucide-react';
+import { Position } from '../types/position-type';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Edit, Trash2, Building, Eye, Search, Plus } from 'lucide-react';
-import { Company } from '../types/company-type';
-import { formatCurrency } from '@/lib/utils';
 import AlertDialogComponent from '@/components/AlertDiolog/AlertDiolog';
 
-interface Props {
-  companies: Company[];
+interface PositionTableProps {
+  positions: Position[];
   pagination: {
     pageNumber: number;
     totalPages: number;
@@ -26,36 +30,30 @@ interface Props {
     pageSize?: number;
   };
   onFiltersChange: (filters: Partial<{ search?: string; pageNumber?: number; pageSize?: number }>) => void;
-  onEdit: (company: Company) => void;
+  onEdit: (position: Position) => void;
   onDelete: (id: number) => void;
-  onView: (company: Company) => void;
   onCreate: () => void;
   isLoading?: boolean;
 }
 
-const getCurrencySymbol = (currency: number) => {
-  switch (currency) {
-    case 0: return 'AZN';
-    case 1: return 'USD';
-    case 2: return 'EUR';
-    default: return 'AZN';
-  }
-};
-
-export default function CompaniesTable({ 
-  companies, 
+export default function PositionTable({
+  positions,
   pagination,
   filters,
   onFiltersChange,
-  onEdit, 
-  onDelete, 
-  onView,
+  onEdit,
+  onDelete,
   onCreate,
-  isLoading 
-}: Props) {
-  const t = useTranslations('company');
+  isLoading
+}: PositionTableProps) {
+  const t = useTranslations('position');
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  
+  const getPositionName = (position: Position, language: string = 'az') => {
+    const positionSet = position.positionSets?.find(ps => ps.language === language);
+    return positionSet?.name || position.positionSets?.[0]?.name || '—';
+  };
 
   const handleDeleteClick = (id: number) => {
     setDeleteId(id);
@@ -75,22 +73,22 @@ export default function CompaniesTable({
     setDeleteId(null);
   };
 
-  if (companies.length === 0 && !isLoading) {
+  if (positions.length === 0 && !isLoading) {
     return (
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
         <div className="text-center py-12">
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Building className="w-8 h-8 text-gray-400" />
+            <Search className="w-8 h-8 text-gray-400" />
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            {t('noCompaniesFound')}
+            {t('noPositionsFound')}
           </h3>
           <p className="text-gray-600 mb-4">
-            {filters.search ? t('noCompaniesMessage') : t('noCompaniesYet')}
+            {filters.search ? t('noPositionsMessage') : t('noPositionsYet')}
           </p>
           <Button onClick={onCreate}>
             <Plus className="w-5 h-5 mr-2" />
-            {t('newCompany')}
+            {t('newPosition')}
           </Button>
         </div>
       </div>
@@ -116,7 +114,7 @@ export default function CompaniesTable({
           </div>
           <Button onClick={onCreate} className="bg-blue-600 hover:bg-blue-700">
             <Plus className="w-5 h-5 mr-2" />
-            {t('newCompany')}
+            {t('newPosition')}
           </Button>
         </div>
       </div>
@@ -126,17 +124,14 @@ export default function CompaniesTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>{t('logo')}</TableHead>
-              <TableHead>{t('titleLabel')}</TableHead>
-              <TableHead>{t('currentBalance')}</TableHead>
-              <TableHead>{t('budgetLimit')}</TableHead>
+              <TableHead>{t('name')}</TableHead>
               <TableHead className="text-right">{t('operations')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8">
+                <TableCell colSpan={2} className="text-center py-8">
                   <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                     <span className="ml-3 text-gray-600">{t('loading')}</span>
@@ -144,56 +139,29 @@ export default function CompaniesTable({
                 </TableCell>
               </TableRow>
             ) : (
-              companies.map((company) => (
-                <TableRow key={company.id} className="hover:bg-gray-50">
+              positions.map((position) => (
+                <TableRow key={position?.id} className="hover:bg-gray-50">
                   <TableCell>
-                    {company.logo ? (
-                      <div className="w-10 h-10 relative rounded-lg overflow-hidden border">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={company.logo} alt={company.title} className="object-cover w-full h-full" />
-                      </div>
-                    ) : (
-                      <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                        <Building className="w-5 h-5 text-gray-400" />
-                      </div>
-                    )}
+                    <span className="text-sm font-medium text-gray-900">{position.name}</span>
                   </TableCell>
-                  <TableCell>
-                    <span className="text-sm font-medium text-gray-900">{company.title}</span>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm text-gray-900">
-                      {company.currentBalance} {getCurrencySymbol(company.currency)}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-sm text-gray-900">
-                      {company.budgetLimit ? `${company.budgetLimit} ${getCurrencySymbol(company.currency)}` : '—'}
-                    </span>
-                  </TableCell>
+              
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end space-x-2">
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => onView(company)}
-                        className="text-blue-600 border-blue-200 hover:bg-blue-50"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onEdit(company)}
+                        onClick={() => onEdit(position)}
                         className="text-green-600 border-green-200 hover:bg-green-50"
+                        title={t('edit')}
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleDeleteClick(company.id)}
+                        onClick={() => handleDeleteClick(position.id)}
                         className="text-red-600 border-red-200 hover:bg-red-50"
+                        title={t('delete')}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -257,5 +225,4 @@ export default function CompaniesTable({
     </div>
   );
 }
-
 
