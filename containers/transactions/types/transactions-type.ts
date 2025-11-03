@@ -1,3 +1,24 @@
+// Enums
+export enum OperationType {
+  // ============ INCOME ============
+  IncomeFromProject = 0,
+  IncomeFromOwnBudget = 1,
+  CompanyBalanceIncrease = 2,
+  
+  // ============ EXPENSE ============
+  Expense = 3,
+  
+  // ============ TRANSFER ============
+  Transfer = 4,
+  
+  // ============ ACCOUNT INCREASE ============
+  AccountIncreaseFromProject = 5,
+  AccountIncreaseFromCompany = 6,
+  
+  // ============ REFUND ============
+  Refund = 7
+}
+
 export interface Transaction {
   id: string;
   projectId: string;

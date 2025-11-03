@@ -13,22 +13,91 @@ import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { mockData } from '@/lib/mock-data';
-import { Project, ProjectFormData } from './types/projects-type';
+import { Project, ProjectFormData, ProjectStatus } from './types/projects-type';
 import ProjectsTable from './components/ProjectsTable';
 import FormComponent from './components/FormComponent';
 import ProjectViewModal from './components/ProjectViewModal';
+import { useProjects, useDeleteProject, useProject } from '@/lib/hooks/useProject';
+import { toast } from 'sonner';
 
 export default function ProjectsPage() {
   const t = useTranslations();
-  const [projects] = useState<Project[]>(mockData.projects);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
-  const [viewProject, setViewProject] = useState<Project | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+  const [viewProjectId, setViewProjectId] = useState<string | null>(null);
+
+  // API: Get projects with pagination
+  const statusValue = statusFilter === 'all' ? undefined : 
+    statusFilter === 'active' ? ProjectStatus.Active :
+    statusFilter === 'completed' ? ProjectStatus.Completed :
+    statusFilter === 'paused' ? ProjectStatus.Paused :
+    statusFilter === 'draft' ? ProjectStatus.Draft : undefined;
+
+  const { projects: apiProjects, statistics, isLoading, refetchProjects } = useProjects({
+    pageNumber: currentPage,
+    pageSize: 100,
+    search: searchTerm,
+    status: statusValue
+  });
+
+  // API: Delete project
+  const { mutate: deleteProject } = useDeleteProject();
+
+  // API: Get project by ID for edit only
+  const { data: projectDetailData, isLoading: isLoadingDetail } = useProject(
+    selectedProjectId,
+    !!selectedProjectId
+  );
+
+  // Update editingProject when detail data arrives
+  React.useEffect(() => {
+    if (projectDetailData?.responseValue && selectedProjectId) {
+      const detail = projectDetailData.responseValue;
+      setEditingProject({
+        id: detail.id.toString(),
+        name: detail.name,
+        description: detail.description,
+        status: detail.status === ProjectStatus.Active ? 'active' :
+                detail.status === ProjectStatus.Completed ? 'completed' :
+                detail.status === ProjectStatus.Paused ? 'paused' : 'draft',
+        startDate: detail.startDate,
+        endDate: detail.endDatePlanned,
+        budget: detail.financialSummary.plannedCapital,
+        totalExpenses: detail.financialSummary.totalExpenses,
+        remainingBudget: detail.financialSummary.remainingBudget,
+        assignedUsers: detail.teamMembers.map(m => m.id.toString()),
+        createdAt: detail.createdAt,
+        updatedAt: detail.updatedAt,
+        createdBy: ''
+      });
+    }
+  }, [projectDetailData, selectedProjectId]);
+
+  // Transform API projects to UI format
+  const projects: Project[] = apiProjects.map(p => ({
+    id: p.id.toString(),
+    name: p.name || '',
+    description: p.description,
+    status: p.status === ProjectStatus.Active ? 'active' :
+            p.status === ProjectStatus.Completed ? 'completed' :
+            p.status === ProjectStatus.Paused ? 'paused' : 'draft',
+    startDate: p.startDate || '',
+    endDate: p.endDatePlanned,
+    budget: p.plannedCapital || 0,
+    totalExpenses: p.totalExpenses || 0,
+    remainingBudget: p.remainingBudget || 0,
+    progressPercentage: p.progressPercentage,
+    assignedUsers: p.members?.map(m => m.userId.toString()) || [],
+    members: p.members,
+    createdAt: p.createdAt || '',
+    updatedAt: p.updatedAt || '',
+    createdBy: ''
+  }));
 
   const filteredProjects = projects.filter(project => {
     const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -55,62 +124,79 @@ export default function ProjectsPage() {
   };
 
   const handleViewProject = (projectId: string) => {
-    const project = projects.find(p => p.id === projectId) || null;
-    setViewProject(project);
+    setViewProjectId(projectId);
   };
 
   const handleEditProject = (project: Project) => {
-    setEditingProject(project);
+    setSelectedProjectId(parseInt(project.id));
     setIsFormOpen(true);
   };
 
   const handleDeleteProject = (projectId: string) => {
-    console.log('Delete project:', projectId);
+    deleteProject(parseInt(projectId), {
+      onSuccess: () => {
+        toast.success(t('projects.deleteSuccess'));
+        refetchProjects();
+        setSelectedProjects(prev => prev.filter(id => id !== projectId));
+      },
+      onError: (error) => {
+        console.error('Error deleting project:', error);
+        toast.error(t('projects.deleteFailed'));
+      }
+    });
   };
 
   const handleCreateProject = () => {
     setEditingProject(null);
+    setSelectedProjectId(null);
     setIsFormOpen(true);
   };
 
   const handleFormSubmit = async (data: ProjectFormData) => {
-    try {
-      if (editingProject) {
-        // Update existing project
-        console.log('Update project:', editingProject.id, data);
-      } else {
-        // Create new project
-        console.log('Create project:', data);
-      }
-      
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setIsFormOpen(false);
-      setEditingProject(null);
-    } catch (error) {
-      console.error('Form submission error:', error);
-    }
+    // This will be handled in FormComponent with API calls
+    setIsFormOpen(false);
+    setEditingProject(null);
+    refetchProjects();
   };
 
   const handleCloseForm = () => {
     setIsFormOpen(false);
     setEditingProject(null);
+    setSelectedProjectId(null);
   };
 
   const handleBulkDelete = () => {
-    selectedProjects.forEach(handleDeleteProject);
+    selectedProjects.forEach(projectId => {
+      deleteProject(parseInt(projectId), {
+        onSuccess: () => {
+          refetchProjects();
+        },
+        onError: (error) => {
+          console.error('Error deleting project:', error);
+        }
+      });
+    });
+    toast.success(t('projects.deleteSuccess'));
     setSelectedProjects([]);
   };
 
-  // Calculate stats
-  const totalProjects = projects.length;
-  const activeProjects = projects.filter(p => p.status === 'active').length;
-  const completedProjects = projects.filter(p => p.status === 'completed').length;
-  const pausedProjects = projects.filter(p => p.status === 'paused').length;
-  const totalBudget = projects.reduce((sum, p) => sum + p.budget, 0);
-  const totalExpenses = projects.reduce((sum, p) => sum + p.totalExpenses, 0);
-  const remainingBudget = totalBudget - totalExpenses;
+  // Use stats from API or calculate from filtered projects
+  const totalProjects = statistics?.totalProjects || filteredProjects.length;
+  const activeProjects = statistics?.activeProjects || filteredProjects.filter(p => p.status === 'active').length;
+  const completedProjects = statistics?.completedProjects || filteredProjects.filter(p => p.status === 'completed').length;
+  const pausedProjects = filteredProjects.filter(p => p.status === 'paused').length;
+  const totalBudget = statistics?.totalBudget || filteredProjects.reduce((sum, p) => sum + p.budget, 0);
+  const totalExpenses = statistics?.totalExpenses || filteredProjects.reduce((sum, p) => sum + p.totalExpenses, 0);
+  const remainingBudget = statistics?.totalRemainingBudget ?? (totalBudget - totalExpenses);
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -252,22 +338,26 @@ export default function ProjectsPage() {
         onClose={handleCloseForm}
         onSubmit={handleFormSubmit}
         title={editingProject ? t('projects.editProject') : t('projects.createProject')}
+        isLoading={isLoadingDetail && !!selectedProjectId}
         initialData={editingProject ? {
+          id: editingProject.id,
           name: editingProject.name,
           description: editingProject.description,
           status: editingProject.status,
           startDate: editingProject.startDate,
           endDate: editingProject.endDate,
           assignedUsers: editingProject.assignedUsers,
-          targetBudget: undefined
-        } : undefined}
+          targetBudget: editingProject.budget
+        } as any : undefined}
       />
 
       {/* View Modal */}
       <ProjectViewModal
-        isOpen={!!viewProject}
-        onClose={() => setViewProject(null)}
-        project={viewProject}
+        isOpen={!!viewProjectId}
+        onClose={() => {
+          setViewProjectId(null);
+        }}
+        projectId={viewProjectId}
       />
     </>
   );

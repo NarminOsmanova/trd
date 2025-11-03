@@ -4,37 +4,90 @@ import React from 'react';
 import { useTranslations } from 'next-intl';
 import DialogComponent from '@/components/modals/DialogComponent';
 import { Badge } from '@/components/ui/badge';
-import { getTransactionsByProject, getUsersByProject, getUserById, getProjectAccountBalance, getTransactionsWithBalance } from '@/lib/mock-data';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { Transaction } from '@/types';
+import { useProject } from '@/lib/hooks/useProject';
+import { OperationType } from '@/containers/transactions/types/transactions-type';
+import { Currency } from '@/containers/company/types/company-type';
+import { ProjectStatus } from '../types/projects-type';
 
 interface ProjectViewModalProps {
   isOpen: boolean;
   onClose: () => void;
-  project: {
-    id: string;
-    name: string;
-    description?: string;
-    status: 'active' | 'completed' | 'paused';
-    startDate: string;
-    endDate?: string;
-    budget: number;
-    totalExpenses: number;
-    remainingBudget: number;
-    assignedUsers: string[];
-    targetBudget?: number;
-  } | null;
+  projectId: string | null;
 }
 
-export default function ProjectViewModal({ isOpen, onClose, project }: ProjectViewModalProps) {
+export default function ProjectViewModal({ isOpen, onClose, projectId }: ProjectViewModalProps) {
   const t = useTranslations();
   
-  if (!isOpen || !project) return null;
+  // Fetch project details
+  const { data: projectData, isLoading } = useProject(
+    projectId ? parseInt(projectId) : null,
+    !!(isOpen && projectId)
+  );
 
-  const users = getUsersByProject(project.id);
-  const transactions: Transaction[] = getTransactionsByProject(project.id);
-  const accountBalance = getProjectAccountBalance(project.id);
-  const transactionsWithBalance = getTransactionsWithBalance(project.id);
+  if (!isOpen) return null;
+
+  const project = projectData?.responseValue;
+
+  if (isLoading) {
+    return (
+      <DialogComponent
+        open={isOpen}
+        setOpen={onClose}
+        title={t('common.loading')}
+        size="xl"
+        maxHeight="max-h-[95vh]"
+      >
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      </DialogComponent>
+    );
+  }
+
+  if (!project) return null;
+
+  // Helper functions
+  const getStatusLabel = (status: ProjectStatus): string => {
+    switch (status) {
+      case ProjectStatus.Active:
+        return t('common.active');
+      case ProjectStatus.Completed:
+        return t('common.completed');
+      case ProjectStatus.Paused:
+        return t('common.paused');
+      case ProjectStatus.Draft:
+        return t('common.draft');
+      default:
+        return '';
+    }
+  };
+
+  const getStatusVariant = (status: ProjectStatus): 'default' | 'success' | 'warning' | 'secondary' => {
+    switch (status) {
+      case ProjectStatus.Active:
+        return 'success';
+      case ProjectStatus.Completed:
+        return 'default';
+      case ProjectStatus.Paused:
+        return 'warning';
+      case ProjectStatus.Draft:
+        return 'secondary';
+      default:
+        return 'default';
+    }
+  };
+
+  const isIncomeOperation = (type: number): boolean => {
+    return [
+      OperationType.IncomeFromProject,
+      OperationType.IncomeFromOwnBudget,
+      OperationType.CompanyBalanceIncrease,
+      OperationType.AccountIncreaseFromProject,
+      OperationType.AccountIncreaseFromCompany,
+      OperationType.Refund
+    ].includes(type);
+  };
 
   return (
     <DialogComponent
@@ -49,7 +102,9 @@ export default function ProjectViewModal({ isOpen, onClose, project }: ProjectVi
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="bg-gray-50 rounded-lg p-3">
             <p className="text-xs text-gray-600 mb-1">{t('projects.projectStatus')}</p>
-            <Badge variant="secondary" className="text-xs">{project.status}</Badge>
+            <Badge variant={getStatusVariant(project.status)} className="text-xs">
+              {getStatusLabel(project.status)}
+            </Badge>
           </div>
           <div className="bg-gray-50 rounded-lg p-3">
             <p className="text-xs text-gray-600 mb-1">{t('projects.projectStart')}</p>
@@ -57,31 +112,43 @@ export default function ProjectViewModal({ isOpen, onClose, project }: ProjectVi
           </div>
           <div className="bg-gray-50 rounded-lg p-3">
             <p className="text-xs text-gray-600 mb-1">{t('projects.projectEnd')}</p>
-            <p className="text-sm font-medium">{project.endDate ? formatDate(project.endDate) : '-'}</p>
+            <p className="text-sm font-medium">
+              {project.endDatePlanned ? formatDate(project.endDatePlanned) : '-'}
+            </p>
           </div>
           <div className="bg-gray-50 rounded-lg p-3">
             <p className="text-xs text-gray-600 mb-1">{t('projects.projectTargetBudget')}</p>
-            <p className="text-sm font-medium">{project.targetBudget ? formatCurrency(project.targetBudget) : '-'}</p>
+            <p className="text-sm font-medium">
+              {formatCurrency(project.financialSummary.plannedCapital)} 
+            </p>
           </div>
         </div>
 
         {/* Budget Summary */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="bg-blue-50 rounded-lg p-3 text-center">
-            <p className="text-xs text-gray-600 mb-1">{t('projects.projectTotalBudget')}</p>
-            <p className="text-lg font-bold text-blue-600">{formatCurrency(project.budget)}</p>
+            <p className="text-xs text-gray-600 mb-1">{t('projects.totalIncome')}</p>
+            <p className="text-lg font-bold text-blue-600">
+              {formatCurrency(project.financialSummary.totalIncome)} 
+            </p>
           </div>
           <div className="bg-red-50 rounded-lg p-3 text-center">
             <p className="text-xs text-gray-600 mb-1">{t('projects.projectExpenses')}</p>
-            <p className="text-lg font-bold text-red-600">{formatCurrency(project.totalExpenses)}</p>
+            <p className="text-lg font-bold text-red-600">
+              {formatCurrency(project.financialSummary.totalExpenses)} 
+            </p>
           </div>
           <div className="bg-green-50 rounded-lg p-3 text-center">
             <p className="text-xs text-gray-600 mb-1">{t('projects.projectRemainingBudget')}</p>
-            <p className="text-lg font-bold text-green-600">{formatCurrency(project.remainingBudget)}</p>
+            <p className="text-lg font-bold text-green-600">
+              {formatCurrency(project.financialSummary.remainingBudget)} 
+            </p>
           </div>
           <div className="bg-purple-50 rounded-lg p-3 text-center">
             <p className="text-xs text-gray-600 mb-1">{t('projects.projectAccount')}</p>
-            <p className="text-lg font-bold text-purple-600">{formatCurrency(accountBalance)}</p>
+            <p className="text-lg font-bold text-purple-600">
+              {formatCurrency(project.financialSummary.currentBalance)}
+            </p>
           </div>
         </div>
 
@@ -99,8 +166,10 @@ export default function ProjectViewModal({ isOpen, onClose, project }: ProjectVi
           <div className="bg-gray-50 rounded-lg p-3">
             <p className="text-xs text-gray-600 mb-2">{t('projects.projectManagers')}</p>
             <div className="flex flex-wrap gap-1">
-              {users.map(u => (
-                <Badge key={u.id} variant="outline" className="text-xs">{u.name}</Badge>
+              {project.teamMembers.map(member => (
+                <Badge key={member.id} variant="outline" className="text-xs">
+                  {member.fullName}
+                </Badge>
               ))}
             </div>
           </div>
@@ -110,38 +179,42 @@ export default function ProjectViewModal({ isOpen, onClose, project }: ProjectVi
         <div className="bg-gray-50 rounded-lg p-3">
           <p className="text-sm font-medium text-gray-700 mb-3">{t('projects.projectTransactions')}</p>
           {/* Header Row */}
-          <div className="grid grid-cols-4 items-center text-xs text-gray-500 px-1 pb-2">
+          <div className="grid grid-cols-5 items-center text-xs text-gray-500 px-1 pb-2">
             <div>{t('projects.transaction')}</div>
+            <div className="text-center">{t('projects.category')}</div>
             <div className="text-center">{t('projects.manager')}</div>
             <div className="text-right">{t('common.amount')}</div>
             <div className="text-right">{t('projects.projectAccount')}</div>
           </div>
           <div className="space-y-2 max-h-96 overflow-y-auto">
-            {transactionsWithBalance.map(transaction => {
-              const user = getUserById(transaction.userId);
+            {project.recentTransactions.map(transaction => {
+              const isIncome = isIncomeOperation(transaction.type);
               return (
-                <div key={transaction.id} className="bg-white rounded-lg p-3 grid grid-cols-4 items-center gap-2">
+                <div key={transaction.id} className="bg-white rounded-lg p-3 grid grid-cols-5 items-center gap-2">
                   <div>
-                    <p className="text-sm font-medium mb-1">{transaction.description || (transaction.type === 'income' ? t('projects.income') : t('projects.expense'))}</p>
+                    <p className="text-sm font-medium mb-1">{transaction.description}</p>
                     <div className="text-xs text-gray-500">{formatDate(transaction.date)}</div>
                   </div>
                   <div className="text-center">
-                    {user && (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full bg-gray-100 text-gray-700 text-xs font-medium">
-                        {user.name}
-                      </span>
-                    )}
+                    <span className="inline-flex items-center px-2 py-1 rounded-full bg-gray-100 text-gray-700 text-xs">
+                      {transaction.category}
+                    </span>
                   </div>
-                  <div className={`text-sm font-semibold text-right ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                    {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                  <div className="text-center">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full bg-blue-100 text-blue-700 text-xs font-medium">
+                      {transaction.userName}
+                    </span>
+                  </div>
+                  <div className={`text-sm font-semibold text-right ${isIncome ? 'text-green-600' : 'text-red-600'}`}>
+                    {isIncome ? '+' : '-'}{formatCurrency(transaction.amount)}
                   </div>
                   <div className="text-sm font-semibold text-right text-purple-600">
-                    {formatCurrency(transaction.runningBalance)}
+                    {formatCurrency(transaction.projectBalance)} 
                   </div>
                 </div>
               );
             })}
-            {transactions.length === 0 && (
+            {project.recentTransactions.length === 0 && (
               <p className="text-sm text-gray-500 py-4 text-center">{t('projects.noTransactions')}</p>
             )}
           </div>

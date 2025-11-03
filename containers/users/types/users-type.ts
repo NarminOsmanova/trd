@@ -1,9 +1,4 @@
 // ==================== Enums ====================
-export enum UserRole {
-  Admin = 0,
-  User = 1,
-  Partner = 2,
-}
 
 export enum UserType {
   User = 0,
@@ -75,6 +70,13 @@ export interface PaginatedUsersResponse {
     hasPreviousPage: boolean;
     hasNextPage: boolean;
   };
+}
+
+// GET /api/web/user/get-all
+export interface AllUsersResponse {
+  statusCode: number;
+  message: string;
+  responseValue?: ApiUser[];
 }
 
 // GET /api/web/user/get-by-id/{id}

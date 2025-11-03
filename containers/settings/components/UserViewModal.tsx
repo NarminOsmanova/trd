@@ -110,28 +110,6 @@ export default function UserViewModal({ userId, isOpen, onClose }: UserViewModal
                 </div>
               </div>
 
-              {/* Additional Information */}
-              <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
-                <h4 className="font-semibold text-gray-900 mb-3">{t('additionalInfo')}</h4>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">{t('userType')}:</span>
-                    <span className="font-medium text-gray-900">
-                      {user.type === 0 ? t('employee') : t('partner')}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">{t('language')}:</span>
-                    <span className="font-medium text-gray-900 uppercase">
-                      {user.set?.language || 'AZ'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">ID:</span>
-                    <span className="font-medium text-gray-900">{user.id}</span>
-                  </div>
-                </div>
-              </div>
         </div>
       ) : (
         <div className="text-center py-12">

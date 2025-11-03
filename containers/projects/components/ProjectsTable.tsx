@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Edit, 
   Trash2, 
@@ -8,18 +8,17 @@ import {
   Eye,
   Calendar,
   Users,
-  DollarSign,
   FolderOpen
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Project } from '../types/projects-type';
-import { formatCurrency, formatDate, getStatusColor, getStatusLabel, getInitials } from '@/lib/utils';
-import { mockData } from '@/lib/mock-data';
+import { formatCurrency, formatDate, getStatusLabel, getInitials } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { usePagination } from '@/hooks/usePagination';
 import PaginationWrapper from '@/components/ui/pagination-wrapper';
+import AlertDialogComponent from '@/components/AlertDiolog/AlertDiolog';
 
 interface ProjectsTableProps {
   projects: Project[];
@@ -35,12 +34,13 @@ export default function ProjectsTable({
   projects,
   selectedProjects,
   onSelectProject,
-  onSelectAll,
   onViewProject,
   onEditProject,
   onDeleteProject
 }: ProjectsTableProps) {
   const t = useTranslations();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deleteProjectId, setDeleteProjectId] = useState<string | null>(null);
   
   // Add pagination
   const pagination = usePagination({ 
@@ -48,10 +48,27 @@ export default function ProjectsTable({
     itemsPerPage: 9 // 3x3 grid layout üçün
   });
 
-  const getProjectUsers = (project: Project) => {
-    return project.assignedUsers
-      .map(userId => mockData.users.find(u => u.id === userId))
-      .filter(user => user !== undefined);
+  const getProjectMembers = (project: Project) => {
+    // members data comes from API with userFullName
+    return project.members || [];
+  };
+
+  const handleDeleteClick = (projectId: string) => {
+    setDeleteProjectId(projectId);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (deleteProjectId !== null) {
+      onDeleteProject(deleteProjectId);
+      setIsDeleteDialogOpen(false);
+      setDeleteProjectId(null);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setIsDeleteDialogOpen(false);
+    setDeleteProjectId(null);
   };
 
   if (projects.length === 0) {
@@ -77,8 +94,7 @@ export default function ProjectsTable({
       {/* Projects Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {pagination.paginatedData.map((project) => {
-        const assignedUsers = getProjectUsers(project);
-        const progressPercentage = Math.round((project.totalExpenses / project.budget) * 100);
+        const members = getProjectMembers(project);
         
         return (
           <div key={project.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
@@ -133,18 +149,12 @@ export default function ProjectsTable({
             <div className="mb-4">
               <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
                 <span>{t('projects.used')}</span>
-                <span>{progressPercentage}%</span>
+                <span>{project.progressPercentage || 0}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
-                  className={`bg-blue-600 h-2 rounded-full transition-all duration-300 ${
-                    progressPercentage >= 90 ? 'w-full' :
-                    progressPercentage >= 75 ? 'w-4/5' :
-                    progressPercentage >= 50 ? 'w-3/5' :
-                    progressPercentage >= 25 ? 'w-2/5' :
-                    progressPercentage >= 10 ? 'w-1/5' :
-                    'w-0'
-                  }`}
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${project.progressPercentage || 0}%` }}
                 ></div>
               </div>
             </div>
@@ -166,28 +176,28 @@ export default function ProjectsTable({
               <div className="flex items-center">
                 <Users className="w-4 h-4 text-gray-400 mr-2" />
                 <div className="flex -space-x-2">
-                  {assignedUsers.slice(0, 3).map((user, index) => (
+                  {members.slice(0, 3).map((member) => (
                     <div
-                      key={user.id}
+                      key={member.id}
                       className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center border-2 border-white"
-                      title={user.name}
+                      title={member.userFullName}
                     >
                       <span className="text-xs font-medium text-gray-600">
-                        {getInitials(user?.name || '')}
+                        {getInitials(member.userFullName || '')}
                       </span>
                     </div>
                   ))}
-                  {assignedUsers.length > 3 && (
+                  {members.length > 3 && (
                     <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center border-2 border-white">
                       <span className="text-xs font-medium text-gray-600">
-                        +{assignedUsers.length - 3}
+                        +{members.length - 3}
                       </span>
                     </div>
                   )}
                 </div>
               </div>
               <span className="text-xs text-gray-500">
-                {assignedUsers.length} {t('projects.managers')}
+                {members.length} {t('projects.managers')}
               </span>
             </div>
 
@@ -214,7 +224,7 @@ export default function ProjectsTable({
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => onDeleteProject(project.id)}
+                onClick={() => handleDeleteClick(project.id)}
                 className="text-red-400 hover:text-red-600"
               >
                 <Trash2 className="w-4 h-4" />
@@ -233,6 +243,17 @@ export default function ProjectsTable({
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialogComponent
+        open={isDeleteDialogOpen}
+        setOpen={setIsDeleteDialogOpen}
+        title={t('projects.deleteProjectTitle')}
+        description={t('projects.deleteProjectDescription')}
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+        variant="danger"
+      />
     </div>
   );
 }

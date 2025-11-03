@@ -1,6 +1,7 @@
 import type {
   CurrentUserInfoResponse,
   PaginatedUsersResponse,
+  AllUsersResponse,
   GetUserByIdResponse,
   RegistrationLinkRequest,
   RegistrationLinkResponse,
@@ -40,6 +41,16 @@ export const usersService = {
         SearchTerm: searchTerm,
         RoleIds: roleIds,
         Statuses: statuses
+      }
+    });
+    return response.data;
+  },
+
+  // GET /api/web/user/get-all
+  async getAllUsers(searchTerm: string = ""): Promise<AllUsersResponse> {
+    const response = await axiosInstance.get('/web/user/get-all', {
+      params: { 
+        SearchTerm: searchTerm
       }
     });
     return response.data;

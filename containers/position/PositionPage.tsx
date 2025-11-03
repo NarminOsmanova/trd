@@ -6,7 +6,7 @@ import PositionTable from './components/PositionTable';
 import FormComponent from './components/FormComponent';
 import { usePositions, useCreatePosition, useUpdatePosition, useDeletePosition, usePosition } from '@/lib/hooks/usePosition';
 import type { Position, CreatePositionRequest, UpdatePositionRequest } from './types/position-type';
-import { toast, Toaster } from "sonner";
+import { toast } from "sonner";
 
 
 export default function PositionPage() {

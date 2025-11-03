@@ -4,6 +4,7 @@ import type { User } from '@/types';
 import type {
   CurrentUserInfoResponse,
   PaginatedUsersResponse,
+  AllUsersResponse,
   GetUserByIdResponse,
   RegistrationLinkRequest,
   CompleteRegistrationRequest,
@@ -57,7 +58,7 @@ export const useUsers = (filters: UserFilters = {}) => {
     email: apiUser.email || '',
     phone: apiUser.phone || '',
     position: apiUser.position?.name || '',
-    role: apiUser.type === 1 ? 'partner' : (apiUser.role?.name?.toLowerCase() === 'admin' ? 'admin' : 'user'),
+    role: (apiUser.type as number) === 1 ? 'partner' : 'user',
     isActive: apiUser.status === 1,
     createdAt: apiUser.createdAt || new Date().toISOString(),
     updatedAt: apiUser.createdAt || new Date().toISOString(),
@@ -82,6 +83,39 @@ export const useUsers = (filters: UserFilters = {}) => {
     refetchUsers: refetch,
     deleteUser: deleteUserMutation.mutate,
     isDeleting: deleteUserMutation.isPending,
+  };
+};
+
+// ==================== All Users (No Pagination) ====================
+export const useAllUsers = (searchTerm: string = "") => {
+  const { data, isLoading, error, refetch } = useQuery<AllUsersResponse>({
+    queryKey: ['all-users', searchTerm],
+    queryFn: () => usersService.getAllUsers(searchTerm),
+    retry: false,
+  });
+
+  // Transform API users to app users
+  const transformApiUser = (apiUser: ApiUser): User => ({
+    id: apiUser.id.toString(),
+    name: apiUser.set 
+      ? `${apiUser.set.firstName || ''} ${apiUser.set.lastName || ''}`.trim() 
+      : 'N/A',
+    email: apiUser.email || '',
+    phone: apiUser.phone || '',
+    position: apiUser.position?.name || '',
+    role: (apiUser.type as number) === 1 ? 'partner' : 'user',
+    isActive: apiUser.status === 1,
+    createdAt: apiUser.createdAt || new Date().toISOString(),
+    updatedAt: apiUser.createdAt || new Date().toISOString(),
+  });
+
+  const transformedUsers = data?.responseValue?.map(transformApiUser) || [];
+
+  return {
+    users: transformedUsers,
+    isLoading,
+    error,
+    refetchUsers: refetch,
   };
 };
 
