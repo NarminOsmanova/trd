@@ -14,73 +14,117 @@ import {
   MoreVertical
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { Debt, Payment } from '../types/debt-type';
-import { mockData } from '@/lib/mock-data';
-import { formatCurrency, formatDate, getInitials } from '@/lib/utils';
+import { ApiDebt } from '../types/debt-type';
+import { formatDate, getInitials } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { usePagination } from '@/hooks/usePagination';
-import PaginationWrapper from '@/components/ui/pagination-wrapper';
+import AlertDialogComponent from '@/components/AlertDiolog/AlertDiolog';
 
 interface DebtCardsProps {
-  debts: Debt[];
-  onViewDebt: (id: string) => void;
-  onEditDebt: (debt: Debt) => void;
-  onDeleteDebt: (id: string) => void;
-  onMarkAsPaid: (id: string) => void;
-  onAddPayment?: (debtId: string, payment: Omit<Payment, 'id'>) => void;
+  debts: ApiDebt[];
+  pagination: {
+    pageNumber: number;
+    totalPages: number;
+    pageSize: number;
+    totalCount: number;
+    hasPreviousPage: boolean;
+    hasNextPage: boolean;
+  } | null;
+  filters: {
+    search?: string;
+    pageNumber?: number;
+    pageSize?: number;
+    status?: number;
+  };
+  onFiltersChange: (filters: Partial<{
+    search?: string;
+    pageNumber?: number;
+    pageSize?: number;
+    status?: number;
+  }>) => void;
+  onViewDebt: (id: number) => void;
+  onEditDebt: (debt: ApiDebt) => void;
+  onDeleteDebt: (id: number) => void;
+  onMarkAsPaid: (id: number) => void;
+  onCreate: () => void;
+  isLoading?: boolean;
 }
 
 export default function DebtCards({
   debts,
+  pagination,
+  filters,
+  onFiltersChange,
   onViewDebt,
   onEditDebt,
   onDeleteDebt,
   onMarkAsPaid,
+  onCreate,
+  isLoading
 }: DebtCardsProps) {
-  const t = useTranslations();
+  const t = useTranslations('debt');
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
+  const [deleteId, setDeleteId] = React.useState<number | null>(null);
 
-  const getStatusColor = (status: Debt['status']) => {
+  const getStatusColor = (status: number) => {
     switch (status) {
-      case 'active':
-        return 'bg-blue-50 border-blue-200';
-      case 'paid':
-        return 'bg-green-50 border-green-200';
-      case 'overdue':
-        return 'bg-red-50 border-red-200';
+      case 0: // active
+        return 'bg-blue-50 border-blue-200 hover:bg-blue-100';
+      case 1: // paid
+        return 'bg-green-50 border-green-200 hover:bg-green-100';
+      case 2: // overdue
+        return 'bg-red-50 border-red-200 hover:bg-red-100';
       default:
-        return 'bg-gray-50 border-gray-200';
+        return 'bg-gray-50 border-gray-200 hover:bg-gray-100';
     }
   };
 
-  const getStatusIcon = (status: Debt['status']) => {
+  const getStatusBadgeColor = (status: number) => {
     switch (status) {
-      case 'active':
-        return <Clock className="w-4 h-4 text-blue-600" />;
-      case 'paid':
-        return <CheckCircle className="w-4 h-4 text-green-600" />;
-      case 'overdue':
-        return <AlertTriangle className="w-4 h-4 text-red-600" />;
+      case 0: // active
+        return 'bg-blue-600 text-white border-blue-700';
+      case 1: // paid
+        return 'bg-green-600 text-white border-green-700';
+      case 2: // overdue
+        return 'bg-red-600 text-white border-red-700';
       default:
-        return <Clock className="w-4 h-4 text-gray-600" />;
+        return 'bg-gray-600 text-white border-gray-700';
     }
   };
 
-  const getStatusLabel = (status: Debt['status']) => {
+  const getStatusIcon = (status: number) => {
     switch (status) {
-      case 'active':
-        return 'Aktiv';
-      case 'paid':
-        return 'Ödənilib';
-      case 'overdue':
-        return 'Gecikmiş';
+      case 0: // active
+        return <Clock className="w-4 h-4 text-white" />;
+      case 1: // paid
+        return <CheckCircle className="w-4 h-4 text-white" />;
+      case 2: // overdue
+        return <AlertTriangle className="w-4 h-4 text-white" />;
       default:
-        return 'Naməlum';
+        return <Clock className="w-4 h-4 text-white" />;
     }
   };
 
-  const getDebtUser = (debt: Debt) => {
-    return mockData.users.find(u => u.id === debt.createdBy);
+  const getStatusLabel = (status: number) => {
+    switch (status) {
+      case 0: // active
+        return t('active');
+      case 1: // paid
+        return t('paid');
+      case 2: // overdue
+        return t('overdue');
+      default:
+        return 'N/A';
+    }
+  };
+
+  const getCurrencySymbol = (currency: number) => {
+    switch (currency) {
+      case 0: return 'AZN';
+      case 1: return 'USD';
+      case 2: return 'EUR';
+      default: return 'AZN';
+    }
   };
 
   const isOverdue = (dueDate: string) => {
@@ -95,13 +139,25 @@ export default function DebtCards({
     return diffDays;
   };
 
-  // Add pagination
-  const pagination = usePagination({
-    data: debts,
-    itemsPerPage: 8 // 2x4 grid layout
-  });
+  const handleDeleteClick = (id: number) => {
+    setDeleteId(id);
+    setIsDeleteDialogOpen(true);
+  };
 
-  if (debts.length === 0) {
+  const handleDeleteConfirm = () => {
+    if (deleteId !== null) {
+      onDeleteDebt(deleteId);
+      setIsDeleteDialogOpen(false);
+      setDeleteId(null);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setIsDeleteDialogOpen(false);
+    setDeleteId(null);
+  };
+
+  if (debts.length === 0 && !isLoading) {
     return (
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
         <div className="text-center py-12">
@@ -109,11 +165,15 @@ export default function DebtCards({
             <DollarSign className="w-8 h-8 text-gray-400" />
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Borc tapılmadı
+            {t('noDebtFound')}
           </h3>
-          <p className="text-gray-600">
-            Axtarış meyarlarına uyğun borc yoxdur
+          <p className="text-gray-600 mb-4">
+            {filters.search ? t('noDebtFoundDesc') : t('noDebtYet')}
           </p>
+          <Button onClick={onCreate}>
+            <DollarSign className="w-5 h-5 mr-2" />
+            {t('newDebt')}
+          </Button>
         </div>
       </div>
     );
@@ -122,68 +182,73 @@ export default function DebtCards({
   return (
     <div className="space-y-6">
       {/* Debts Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {pagination.paginatedData.map((debt) => {
-          const user = getDebtUser(debt);
-          const overdue = isOverdue(debt.dueDate);
-          const daysUntilDue = getDaysUntilDue(debt.dueDate);
-          
-          return (
-            <div 
-              key={debt.id} 
-              className={`bg-white rounded-xl shadow-sm border-2 p-6 hover:shadow-md transition-all duration-200 ${getStatusColor(debt.status)}`}
-            >
-              {/* Header */}
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center space-x-3 flex-1">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold text-lg">
-                      {getInitials(debt.debtor)}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-3 text-gray-600">{t('loading')}</span>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {debts.map((debt) => {
+            const overdue = isOverdue(debt.dueDate);
+            const daysUntilDue = getDaysUntilDue(debt.dueDate);
+            
+            return (
+              <div 
+                key={debt.id} 
+                className={`bg-white rounded-xl shadow-sm border-2 p-6 hover:shadow-md transition-all duration-200 ${getStatusColor(debt.status)}`}
+              >
+                {/* Header */}
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center space-x-3 flex-1">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                      <span className="text-white font-bold text-lg">
+                        {getInitials(debt.debtorName)}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg font-semibold text-gray-900 truncate">
+                        {debt.debtorName}
+                      </h3>
+                      {debt.description && (
+                        <p className="text-sm text-gray-600 line-clamp-2 mt-1">
+                          {debt.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-1 ml-2">
+                    <Badge className={`${getStatusBadgeColor(debt.status)} flex items-center gap-1 border text-xs`}>
+                      {getStatusIcon(debt.status)}
+                      {getStatusLabel(debt.status)}
+                    </Badge>
+                  </div>
+                </div>
+
+                {/* Amount */}
+                <div className="mb-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">{t('amountLabel')}</span>
+                    <span className="text-xl font-bold text-gray-900">
+                      {debt.amount} {getCurrencySymbol(debt.currency)}
                     </span>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold text-gray-900 truncate">
-                      {debt.debtor}
-                    </h3>
-                    {debt.description && (
-                      <p className="text-sm text-gray-600 line-clamp-2 mt-1">
-                        {debt.description}
-                      </p>
-                    )}
-                  </div>
                 </div>
-                <div className="flex items-center space-x-1 ml-2">
-                  <Badge className={`${getStatusColor(debt.status).replace('bg-', 'bg-').replace('border-', 'border-')} flex items-center gap-1 text-xs`}>
-                    {getStatusIcon(debt.status)}
-                    {getStatusLabel(debt.status)}
-                  </Badge>
-                </div>
-              </div>
-
-              {/* Amount */}
-              <div className="mb-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Məbləğ:</span>
-                  <span className="text-xl font-bold text-gray-900">
-                    {formatCurrency(debt.amount)}
-                  </span>
-                </div>
-              </div>
 
               {/* Due Date */}
               <div className="mb-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <Calendar className="w-4 h-4 text-gray-400 mr-2" />
-                    <span className="text-sm text-gray-600">Müddət:</span>
+                    <span className="text-sm text-gray-600">{t('dueDateLabel')}</span>
                   </div>
                   <div className={`text-sm font-medium ${overdue ? 'text-red-600' : daysUntilDue <= 7 ? 'text-orange-600' : 'text-gray-900'}`}>
                     {formatDate(debt.dueDate)}
                   </div>
                 </div>
-                {!overdue && debt.status === 'active' && (
+                {!overdue && debt.status === 0 && (
                   <div className="text-xs text-gray-500 mt-1 text-right">
-                    {daysUntilDue > 0 ? `${daysUntilDue} gün qalıb` : 'Bu gün bitir'}
+                    {daysUntilDue > 0 ? `${daysUntilDue} ${t('daysRemaining')}` : t('dueToday')}
                   </div>
                 )}
               </div>
@@ -193,20 +258,20 @@ export default function DebtCards({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <User className="w-4 h-4 text-gray-400 mr-2" />
-                    <span className="text-sm text-gray-600">Yaradılıb:</span>
+                    <span className="text-sm text-gray-600">{t('createdLabel')}</span>
                   </div>
                   <span className="text-sm text-gray-900">
-                    {formatDate(debt.createdAt)}
+                    {formatDate(debt.createdDate)}
                   </span>
                 </div>
               </div>
 
               {/* Progress Bar for Active Debts */}
-              {debt.status === 'active' && (
+              {debt.status === 0 && (
                 <div className="mb-4">
                   <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
-                    <span>Müddət</span>
-                    <span>{Math.max(0, daysUntilDue)} gün</span>
+                    <span>{t('dueDate')}</span>
+                    <span>{Math.max(0, daysUntilDue)} {t('daysRemaining')}</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div
@@ -231,7 +296,7 @@ export default function DebtCards({
                     className="text-blue-600 border-blue-200 hover:bg-blue-50"
                   >
                     <Eye className="w-3 h-3 mr-1" />
-                    Baxış
+                    {t('view')}
                   </Button>
                   <Button
                     variant="outline"
@@ -240,17 +305,17 @@ export default function DebtCards({
                     className="text-gray-600 border-gray-200 hover:bg-gray-50"
                   >
                     <Edit className="w-3 h-3 mr-1" />
-                    Redaktə
+                    {t('edit')}
                   </Button>
                 </div>
                 <div className="flex items-center space-x-1">
-                  {debt.status === 'active' && (
+                  {debt.status === 0 && (
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => onMarkAsPaid(debt.id)}
                       className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                      title="Ödənildi kimi işarələ"
+                      title={t('markAsPaid')}
                     >
                       <CheckCircle className="w-4 h-4" />
                     </Button>
@@ -258,9 +323,9 @@ export default function DebtCards({
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => onDeleteDebt(debt.id)}
+                    onClick={() => handleDeleteClick(debt.id)}
                     className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    title="Sil"
+                    title={t('delete')}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -270,15 +335,56 @@ export default function DebtCards({
           );
         })}
       </div>
+      )}
 
       {/* Pagination */}
-      {pagination.totalPages > 1 && (
+      {pagination && pagination.totalPages > 1 && (
         <div className="flex justify-center">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-            <PaginationWrapper pagination={pagination} />
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-sm text-gray-600">
+                {pagination.totalCount > 0 && (
+                  <span>
+                    {((pagination.pageNumber - 1) * pagination.pageSize) + 1}-{Math.min(pagination.pageNumber * pagination.pageSize, pagination.totalCount)} / {pagination.totalCount}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onFiltersChange({ pageNumber: pagination.pageNumber - 1 })}
+                  disabled={!pagination.hasPreviousPage}
+                >
+                  {t('previousPage')}
+                </Button>
+                <span className="text-sm text-gray-600">
+                  {t('page')} {pagination.pageNumber} / {pagination.totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onFiltersChange({ pageNumber: pagination.pageNumber + 1 })}
+                  disabled={!pagination.hasNextPage}
+                >
+                  {t('nextPage')}
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialogComponent
+        open={isDeleteDialogOpen}
+        setOpen={setIsDeleteDialogOpen}
+        title={t('deleteConfirm')}
+        description={t('deleteDescription')}
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+        variant="danger"
+      />
     </div>
   );
 }

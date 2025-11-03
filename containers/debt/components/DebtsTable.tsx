@@ -3,9 +3,6 @@
 import React from 'react';
 import { 
   Plus, 
-  Search, 
-  Filter, 
-  MoreVertical, 
   Edit, 
   Trash2, 
   Eye,
@@ -17,95 +14,130 @@ import {
   Clock
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { Debt, DebtFilters, Payment } from '../types/debt-type';
-import { mockData } from '@/lib/mock-data';
-import { formatCurrency, formatDate, getInitials } from '@/lib/utils';
+import { ApiDebt } from '../types/debt-type';
+import { formatDate, getInitials } from '@/lib/utils';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { usePagination } from '@/hooks/usePagination';
-import PaginationWrapper from '@/components/ui/pagination-wrapper';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import AlertDialogComponent from '@/components/AlertDiolog/AlertDiolog';
 
 interface DebtsTableProps {
-  debts: Debt[];
-  filters: DebtFilters;
-  onFiltersChange: (filters: Partial<DebtFilters>) => void;
-  onViewDebt: (id: string) => void;
-  onEditDebt: (debt: Debt) => void;
-  onDeleteDebt: (id: string) => void;
-  onMarkAsPaid: (id: string) => void;
-  onCreateDebt: () => void;
-  onAddPayment?: (debtId: string, payment: Omit<Payment, 'id'>) => void;
+  debts: ApiDebt[];
+  pagination: {
+    pageNumber: number;
+    totalPages: number;
+    pageSize: number;
+    totalCount: number;
+    hasPreviousPage: boolean;
+    hasNextPage: boolean;
+  } | null;
+  filters: {
+    search?: string;
+    pageNumber?: number;
+    pageSize?: number;
+    status?: number;
+  };
+  onFiltersChange: (filters: Partial<{
+    search?: string;
+    pageNumber?: number;
+    pageSize?: number;
+    status?: number;
+  }>) => void;
+  onViewDebt: (id: number) => void;
+  onEditDebt: (debt: ApiDebt) => void;
+  onDeleteDebt: (id: number) => void;
+  onMarkAsPaid: (id: number) => void;
+  onCreate: () => void;
+  isLoading?: boolean;
 }
 
 export default function DebtsTable({
   debts,
+  pagination,
   filters,
   onFiltersChange,
   onViewDebt,
   onEditDebt,
   onDeleteDebt,
   onMarkAsPaid,
-  onCreateDebt,
+  onCreate,
+  isLoading
 }: DebtsTableProps) {
-  const t = useTranslations();
+  const t = useTranslations('debt');
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
+  const [deleteId, setDeleteId] = React.useState<number | null>(null);
 
-  const getStatusColor = (status: Debt['status']) => {
+  const getStatusColor = (status: number) => {
     switch (status) {
-      case 'active':
-        return 'bg-blue-100 text-blue-800';
-      case 'paid':
-        return 'bg-green-100 text-green-800';
-      case 'overdue':
-        return 'bg-red-100 text-red-800';
+      case 0: // active
+        return 'bg-blue-600 text-white border-blue-700';
+      case 1: // paid
+        return 'bg-green-600 text-white border-green-700';
+      case 2: // overdue
+        return 'bg-red-600 text-white border-red-700';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-600 text-white border-gray-700';
     }
   };
 
-  const getStatusIcon = (status: Debt['status']) => {
+  const getStatusIcon = (status: number) => {
     switch (status) {
-      case 'active':
-        return <Clock className="w-4 h-4" />;
-      case 'paid':
-        return <CheckCircle className="w-4 h-4" />;
-      case 'overdue':
-        return <AlertTriangle className="w-4 h-4" />;
+      case 0: // active
+        return <Clock className="w-4 h-4 text-white" />;
+      case 1: // paid
+        return <CheckCircle className="w-4 h-4 text-white" />;
+      case 2: // overdue
+        return <AlertTriangle className="w-4 h-4 text-white" />;
       default:
-        return <Clock className="w-4 h-4" />;
+        return <Clock className="w-4 h-4 text-white" />;
     }
   };
 
-  const getStatusLabel = (status: Debt['status']) => {
+  const getStatusLabel = (status: number) => {
     switch (status) {
-      case 'active':
-        return 'Aktiv';
-      case 'paid':
-        return 'Ödənilib';
-      case 'overdue':
-        return 'Gecikmiş';
+      case 0: // active
+        return t('active');
+      case 1: // paid
+        return t('paid');
+      case 2: // overdue
+        return t('overdue');
       default:
-        return 'Naməlum';
+        return 'N/A';
     }
   };
 
-  const getDebtUser = (debt: Debt) => {
-    return mockData.users.find(u => u.id === debt.createdBy);
+  const getCurrencySymbol = (currency: number) => {
+    switch (currency) {
+      case 0: return 'AZN';
+      case 1: return 'USD';
+      case 2: return 'EUR';
+      default: return 'AZN';
+    }
   };
 
   const isOverdue = (dueDate: string) => {
     return new Date(dueDate) < new Date() && new Date(dueDate).toDateString() !== new Date().toDateString();
   };
 
-  // Add pagination
-  const pagination = usePagination({
-    data: debts,
-    itemsPerPage: 10
-  });
+  const handleDeleteClick = (id: number) => {
+    setDeleteId(id);
+    setIsDeleteDialogOpen(true);
+  };
 
-  if (debts.length === 0) {
+  const handleDeleteConfirm = () => {
+    if (deleteId !== null) {
+      onDeleteDebt(deleteId);
+      setIsDeleteDialogOpen(false);
+      setDeleteId(null);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setIsDeleteDialogOpen(false);
+    setDeleteId(null);
+  };
+
+  if (debts.length === 0 && !isLoading) {
     return (
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
         <div className="text-center py-12">
@@ -113,14 +145,14 @@ export default function DebtsTable({
             <DollarSign className="w-8 h-8 text-gray-400" />
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Borc tapılmadı
+            {t('noDebtFound')}
           </h3>
           <p className="text-gray-600 mb-4">
-            Axtarış meyarlarına uyğun borc yoxdur
+            {filters.search ? t('noDebtFoundDesc') : t('noDebtYet')}
           </p>
-          <Button onClick={onCreateDebt}>
+          <Button onClick={onCreate}>
             <Plus className="w-5 h-5 mr-2" />
-            Yeni Borc
+            {t('newDebt')}
           </Button>
         </div>
       </div>
@@ -129,187 +161,188 @@ export default function DebtsTable({
 
   return (
     <div className="space-y-6">
-      {/* Header Actions */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-between">
-        <div className="flex flex-col sm:flex-row gap-4 flex-1">
-          {/* Search */}
-          <div className="relative flex-1 max-w-md">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
-            </div>
-            <Input
-              type="text"
-              placeholder="Borclu adı ilə axtar..."
-              value={filters.search}
-              onChange={(e) => onFiltersChange({ search: e.target.value })}
-              className="pl-10"
-            />
-          </div>
-
-          {/* Status Filter */}
-          <Select value={filters.status} onValueChange={(value) => onFiltersChange({ status: value as DebtFilters['status'] })}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Status seçin" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Bütün statuslar</SelectItem>
-              <SelectItem value="active">Aktiv</SelectItem>
-              <SelectItem value="paid">Ödənilib</SelectItem>
-              <SelectItem value="overdue">Gecikmiş</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {/* Currency Filter */}
-          <Select value={filters.currency} onValueChange={(value) => onFiltersChange({ currency: value as DebtFilters['currency'] })}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Valyuta" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Bütün valyutalar</SelectItem>
-              <SelectItem value="AZN">AZN</SelectItem>
-              <SelectItem value="USD">USD</SelectItem>
-              <SelectItem value="EUR">EUR</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Add Debt Button */}
-        <Button onClick={onCreateDebt}>
-          <Plus className="w-5 h-5 mr-2" />
-          Yeni Borc
-        </Button>
-      </div>
-
       {/* Debts Table */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Borclu</TableHead>
-              <TableHead>Məbləğ</TableHead>
-              <TableHead>Müddət</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Yaradılıb</TableHead>
-              <TableHead>Əməliyyatlar</TableHead>
+              <TableHead>{t('debtor')}</TableHead>
+              <TableHead>{t('amount')}</TableHead>
+              <TableHead>{t('dueDate')}</TableHead>
+              <TableHead>{t('status')}</TableHead>
+              <TableHead>{t('createdAt')}</TableHead>
+              <TableHead>{t('operations')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {pagination.paginatedData.map((debt) => {
-              const user = getDebtUser(debt);
-              const overdue = isOverdue(debt.dueDate);
-              
-              return (
-                <TableRow key={debt.id} className="hover:bg-gray-50">
-                  {/* Debtor */}
-                  <TableCell>
-                    <div className="flex items-center">
-                      <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-3">
-                        <span className="text-xs font-medium text-gray-600">
-                          {getInitials(debt.debtor)}
-                        </span>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-8">
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <span className="ml-3 text-gray-600">{t('loading')}</span>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : (
+              debts.map((debt) => {
+                const overdue = isOverdue(debt.dueDate);
+                
+                return (
+                  <TableRow key={debt.id} className="hover:bg-gray-50">
+                    {/* Debtor */}
+                    <TableCell>
+                      <div className="flex items-center">
+                        <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mr-3">
+                          <span className="text-xs font-medium text-gray-600">
+                            {getInitials(debt.debtorName)}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">{debt.debtorName}</p>
+                          {debt.description && (
+                            <p className="text-xs text-gray-500 truncate max-w-48">
+                              {debt.description}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">{debt.debtor}</p>
-                        {debt.description && (
-                          <p className="text-xs text-gray-500 truncate max-w-48">
-                            {debt.description}
-                          </p>
-                        )}
+                    </TableCell>
+
+                    {/* Amount */}
+                    <TableCell>
+                      <div className="text-sm font-semibold text-gray-900">
+                        {debt.amount} {getCurrencySymbol(debt.currency)}
                       </div>
-                    </div>
-                  </TableCell>
+                    </TableCell>
 
-                  {/* Amount */}
-                  <TableCell>
-                    <div className="text-sm font-semibold text-gray-900">
-                      {formatCurrency(debt.amount)}
-                    </div>
-                  </TableCell>
-
-                  {/* Due Date */}
-                  <TableCell>
-                    <div className="flex items-center">
-                      <Calendar className="w-4 h-4 text-gray-400 mr-2" />
-                      <div className={`text-sm ${overdue ? 'text-red-600 font-medium' : 'text-gray-900'}`}>
-                        {formatDate(debt.dueDate)}
+                    {/* Due Date */}
+                    <TableCell>
+                      <div className="flex items-center">
+                        <Calendar className="w-4 h-4 text-gray-400 mr-2" />
+                        <div className={`text-sm ${overdue ? 'text-red-600 font-medium' : 'text-gray-900'}`}>
+                          {formatDate(debt.dueDate)}
+                        </div>
                       </div>
-                    </div>
-                  </TableCell>
+                    </TableCell>
 
-                  {/* Status */}
-                  <TableCell>
-                    <Badge className={`${getStatusColor(debt.status)} flex items-center gap-1`}>
-                      {getStatusIcon(debt.status)}
-                      {getStatusLabel(debt.status)}
-                    </Badge>
-                  </TableCell>
+                    {/* Status */}
+                    <TableCell>
+                      <Badge className={`${getStatusColor(debt.status)} flex items-center gap-1 border`}>
+                        {getStatusIcon(debt.status)}
+                        {getStatusLabel(debt.status)}
+                      </Badge>
+                    </TableCell>
 
-                  {/* Created At */}
-                  <TableCell>
-                    <div className="flex items-center">
-                      <User className="w-4 h-4 text-gray-400 mr-2" />
-                      <div className="text-sm text-gray-900">
-                        {formatDate(debt.createdAt)}
+                    {/* Created At */}
+                    <TableCell>
+                      <div className="flex items-center">
+                        <User className="w-4 h-4 text-gray-400 mr-2" />
+                        <div className="text-sm text-gray-900">
+                          {formatDate(debt.createdDate)}
+                        </div>
                       </div>
-                    </div>
-                  </TableCell>
+                    </TableCell>
 
-                  {/* Actions */}
-                  <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onViewDebt(debt.id)}
-                        title="Baxış"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onEditDebt(debt)}
-                        title="Redaktə"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      {debt.status === 'active' && (
+                    {/* Actions */}
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
                         <Button
-                          variant="ghost"
+                          variant="outline"
                           size="sm"
-                          onClick={() => onMarkAsPaid(debt.id)}
-                          title="Ödənildi kimi işarələ"
-                          className="text-green-600 hover:text-green-700"
+                          onClick={() => onViewDebt(debt.id)}
+                          className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                          title={t('view')}
                         >
-                          <CheckCircle className="w-4 h-4" />
+                          <Eye className="w-4 h-4" />
                         </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onDeleteDebt(debt.id)}
-                        title="Sil"
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => onEditDebt(debt)}
+                          className="text-green-600 border-green-200 hover:bg-green-50"
+                          title={t('edit')}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        {debt.status === 0 && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => onMarkAsPaid(debt.id)}
+                            title={t('markAsPaid')}
+                            className="text-purple-600 border-purple-200 hover:bg-purple-50"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteClick(debt.id)}
+                          title={t('delete')}
+                          className="text-red-600 border-red-200 hover:bg-red-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
           </TableBody>
         </Table>
       </div>
 
       {/* Pagination */}
-      {pagination.totalPages > 1 && (
+      {pagination && pagination.totalPages > 1 && (
         <div className="flex justify-center">
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-            <PaginationWrapper pagination={pagination} />
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-sm text-gray-600">
+                {pagination.totalCount > 0 && (
+                  <span>
+                    {((pagination.pageNumber - 1) * pagination.pageSize) + 1}-{Math.min(pagination.pageNumber * pagination.pageSize, pagination.totalCount)} / {pagination.totalCount}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onFiltersChange({ pageNumber: pagination.pageNumber - 1 })}
+                  disabled={!pagination.hasPreviousPage}
+                >
+                  {t('previousPage')}
+                </Button>
+                <span className="text-sm text-gray-600">
+                  {t('page')} {pagination.pageNumber} / {pagination.totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onFiltersChange({ pageNumber: pagination.pageNumber + 1 })}
+                  disabled={!pagination.hasNextPage}
+                >
+                  {t('nextPage')}
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialogComponent
+        open={isDeleteDialogOpen}
+        setOpen={setIsDeleteDialogOpen}
+        title={t('deleteConfirm')}
+        description={t('deleteDescription')}
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+        variant="danger"
+      />
     </div>
   );
 }

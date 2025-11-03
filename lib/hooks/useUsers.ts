@@ -11,7 +11,6 @@ import type {
   LoginRequest,
   ChangePasswordRequest,
   ApiUser,
-  UserStatus,
 } from '@/containers/users/types/users-type';
 
 // ==================== Types ====================
