@@ -118,7 +118,13 @@ export default function FormComponent({
 
   const handleFormSubmit = async (data: DebtFormData) => {
     try {
-      await onSubmit(data);
+      // Əgər debtorId varsa (mövcud debtor seçilib), debtorName göndərmə
+      const submitData = {
+        ...data,
+        debtorName: data.debtorId ? undefined : data.debtorName,
+      };
+      
+      await onSubmit(submitData as DebtFormData);
       reset();
       setDebtorSearchTerm('');
       setSelectedDebtor(null);

@@ -9,6 +9,7 @@ import {
   ApiProject,
   ProjectStatus
 } from '@/containers/projects/types/projects-type';
+import { useEffect, useState } from 'react';
 
 
 // ==================== Types ====================
@@ -22,14 +23,27 @@ export type ProjectFilters = {
 // ==================== Main Hook ====================
 export const useProjects = (filters: ProjectFilters = {}) => {
   const queryClient = useQueryClient();
+  const [debouncedSearch, setDebouncedSearch] = useState(filters.search || '');
 
-  // Get paginated projects
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(filters.search || '');
+    }, 500); // 500ms debounce delay
+
+    return () => clearTimeout(timer);
+  }, [filters.search]);
+
+  // Get paginated projects with debounced search
   const { data, isLoading, error, refetch } = useQuery<PaginatedProjectsResponse>({
-    queryKey: ['projects', filters],
+    queryKey: ['projects', { 
+      ...filters, 
+      search: debouncedSearch // Use debounced search in query key
+    }],
     queryFn: () => projectService.getProjectsWithPagination(
       filters.pageNumber,
       filters.pageSize,
-      filters.search,
+      debouncedSearch, // Use debounced search in API call
       filters.status
     ),
     retry: false,

@@ -14,3 +14,15 @@ export const debtFormSchema = z.object({
 });
 
 export type DebtFormData = z.infer<typeof debtFormSchema>;
+
+// Debt Payment Form Schema
+export const debtPaymentFormSchema = z.object({
+  amount: z.preprocess(
+    (val) => (val === '' ? 0 : Number(val)),
+    z.number().min(0.01, 'Məbləğ 0-dan böyük olmalıdır').max(1000000, 'Məbləğ çox böyükdür')
+  ),
+  paymentDate: z.string().min(1, 'Ödəniş tarixi seçilməlidir'),
+  note: z.string().max(500, 'Qeyd 500 simvoldan çox ola bilməz').optional(),
+});
+
+export type DebtPaymentFormData = z.infer<typeof debtPaymentFormSchema>;

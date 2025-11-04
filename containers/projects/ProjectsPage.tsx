@@ -1,48 +1,76 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { 
-  FolderOpen, 
+import React, { useState } from "react";
+import {
+  FolderOpen,
   Plus,
   Search,
   Calendar,
   Users,
-  DollarSign
-} from 'lucide-react';
-import { useTranslations } from 'next-intl';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Project, ProjectFormData, ProjectStatus } from './types/projects-type';
-import ProjectsTable from './components/ProjectsTable';
-import FormComponent from './components/FormComponent';
-import ProjectViewModal from './components/ProjectViewModal';
-import { useProjects, useDeleteProject, useProject } from '@/lib/hooks/useProject';
-import { toast } from 'sonner';
+  DollarSign,
+  X,
+} from "lucide-react";
+import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Project, ProjectFormData, ProjectStatus } from "./types/projects-type";
+import ProjectsTable from "./components/ProjectsTable";
+import FormComponent from "./components/FormComponent";
+import ProjectViewModal from "./components/ProjectViewModal";
+import {
+  useProjects,
+  useDeleteProject,
+  useProject,
+} from "@/lib/hooks/useProject";
+import { toast } from "sonner";
 
 export default function ProjectsPage() {
   const t = useTranslations();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [filters, setFilters] = useState({
+    search: "",
+    status: "all",
+    pageNumber: 1,
+    pageSize: 100,
+  });
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(
+    null
+  );
   const [viewProjectId, setViewProjectId] = useState<string | null>(null);
 
   // API: Get projects with pagination
-  const statusValue = statusFilter === 'all' ? undefined : 
-    statusFilter === 'active' ? ProjectStatus.Active :
-    statusFilter === 'completed' ? ProjectStatus.Completed :
-    statusFilter === 'paused' ? ProjectStatus.Paused :
-    statusFilter === 'draft' ? ProjectStatus.Draft : undefined;
+  const statusValue =
+    filters.status === "all"
+      ? undefined
+      : filters.status === "active"
+      ? ProjectStatus.Active
+      : filters.status === "completed"
+      ? ProjectStatus.Completed
+      : filters.status === "paused"
+      ? ProjectStatus.Paused
+      : filters.status === "draft"
+      ? ProjectStatus.Draft
+      : undefined;
 
-  const { projects: apiProjects, statistics, isLoading, refetchProjects } = useProjects({
-    pageNumber: currentPage,
-    pageSize: 100,
-    search: searchTerm,
-    status: statusValue
+  const {
+    projects: apiProjects,
+    statistics,
+    isLoading,
+    refetchProjects,
+  } = useProjects({
+    pageNumber: filters.pageNumber,
+    pageSize: filters.pageSize,
+    search: filters.search,
+    status: statusValue,
   });
 
   // API: Delete project
@@ -62,64 +90,81 @@ export default function ProjectsPage() {
         id: detail.id.toString(),
         name: detail.name,
         description: detail.description,
-        status: detail.status === ProjectStatus.Active ? 'active' :
-                detail.status === ProjectStatus.Completed ? 'completed' :
-                detail.status === ProjectStatus.Paused ? 'paused' : 'draft',
+        status:
+          detail.status === ProjectStatus.Active
+            ? "active"
+            : detail.status === ProjectStatus.Completed
+            ? "completed"
+            : detail.status === ProjectStatus.Paused
+            ? "paused"
+            : "draft",
         startDate: detail.startDate,
         endDate: detail.endDatePlanned,
         budget: detail.financialSummary.plannedCapital,
         totalExpenses: detail.financialSummary.totalExpenses,
         remainingBudget: detail.financialSummary.remainingBudget,
-        assignedUsers: detail.teamMembers.map(m => m.id.toString()),
+        assignedUsers: detail.teamMembers.map((m) => m.id.toString()),
         createdAt: detail.createdAt,
         updatedAt: detail.updatedAt,
-        createdBy: ''
+        createdBy: "",
       });
     }
   }, [projectDetailData, selectedProjectId]);
 
   // Transform API projects to UI format
-  const projects: Project[] = apiProjects.map(p => ({
+  const projects: Project[] = apiProjects.map((p) => ({
     id: p.id.toString(),
-    name: p.name || '',
+    name: p.name || "",
     description: p.description,
-    status: p.status === ProjectStatus.Active ? 'active' :
-            p.status === ProjectStatus.Completed ? 'completed' :
-            p.status === ProjectStatus.Paused ? 'paused' : 'draft',
-    startDate: p.startDate || '',
+    status:
+      p.status === ProjectStatus.Active
+        ? "active"
+        : p.status === ProjectStatus.Completed
+        ? "completed"
+        : p.status === ProjectStatus.Paused
+        ? "paused"
+        : "draft",
+    startDate: p.startDate || "",
     endDate: p.endDatePlanned,
     budget: p.plannedCapital || 0,
     totalExpenses: p.totalExpenses || 0,
     remainingBudget: p.remainingBudget || 0,
     progressPercentage: p.progressPercentage,
-    assignedUsers: p.members?.map(m => m.userId.toString()) || [],
+    assignedUsers: p.members?.map((m) => m.userId.toString()) || [],
     members: p.members,
-    createdAt: p.createdAt || '',
-    updatedAt: p.updatedAt || '',
-    createdBy: ''
+    createdAt: p.createdAt || "",
+    updatedAt: p.updatedAt || "",
+    createdBy: "",
   }));
 
-  const filteredProjects = projects.filter(project => {
-    const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         project.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || project.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
+  const handleFiltersChange = (newFilters: Partial<typeof filters>) => {
+    setFilters((prev) => ({ ...prev, ...newFilters }));
+  };
+
+  const handleClearFilters = () => {
+    setFilters({
+      search: "",
+      status: "all",
+      pageNumber: 1,
+      pageSize: 100,
+    });
+  };
+
+  const hasActiveFilters = filters.search || filters.status !== "all";
 
   const handleSelectProject = (projectId: string) => {
-    setSelectedProjects(prev => 
+    setSelectedProjects((prev) =>
       prev.includes(projectId)
-        ? prev.filter(id => id !== projectId)
+        ? prev.filter((id) => id !== projectId)
         : [...prev, projectId]
     );
   };
 
   const handleSelectAll = () => {
-    if (selectedProjects.length === filteredProjects.length) {
+    if (selectedProjects.length === projects.length) {
       setSelectedProjects([]);
     } else {
-      setSelectedProjects(filteredProjects.map(p => p.id));
+      setSelectedProjects(projects.map((p: Project) => p.id));
     }
   };
 
@@ -135,14 +180,14 @@ export default function ProjectsPage() {
   const handleDeleteProject = (projectId: string) => {
     deleteProject(parseInt(projectId), {
       onSuccess: () => {
-        toast.success(t('projects.deleteSuccess'));
+        toast.success(t("projects.deleteSuccess"));
         refetchProjects();
-        setSelectedProjects(prev => prev.filter(id => id !== projectId));
+        setSelectedProjects((prev) => prev.filter((id) => id !== projectId));
       },
       onError: (error) => {
-        console.error('Error deleting project:', error);
-        toast.error(t('projects.deleteFailed'));
-      }
+        console.error("Error deleting project:", error);
+        toast.error(t("projects.deleteFailed"));
+      },
     });
   };
 
@@ -166,28 +211,36 @@ export default function ProjectsPage() {
   };
 
   const handleBulkDelete = () => {
-    selectedProjects.forEach(projectId => {
+    selectedProjects.forEach((projectId) => {
       deleteProject(parseInt(projectId), {
         onSuccess: () => {
           refetchProjects();
         },
         onError: (error) => {
-          console.error('Error deleting project:', error);
-        }
+          console.error("Error deleting project:", error);
+        },
       });
     });
-    toast.success(t('projects.deleteSuccess'));
+    toast.success(t("projects.deleteSuccess"));
     setSelectedProjects([]);
   };
 
-  // Use stats from API or calculate from filtered projects
-  const totalProjects = statistics?.totalProjects || filteredProjects.length;
-  const activeProjects = statistics?.activeProjects || filteredProjects.filter(p => p.status === 'active').length;
-  const completedProjects = statistics?.completedProjects || filteredProjects.filter(p => p.status === 'completed').length;
-  const pausedProjects = filteredProjects.filter(p => p.status === 'paused').length;
-  const totalBudget = statistics?.totalBudget || filteredProjects.reduce((sum, p) => sum + p.budget, 0);
-  const totalExpenses = statistics?.totalExpenses || filteredProjects.reduce((sum, p) => sum + p.totalExpenses, 0);
-  const remainingBudget = statistics?.totalRemainingBudget ?? (totalBudget - totalExpenses);
+  // Use stats from API
+  const totalProjects = statistics?.totalProjects || projects.length;
+  const activeProjects =
+    statistics?.activeProjects ||
+    projects.filter((p) => p.status === "active").length;
+  const completedProjects =
+    statistics?.completedProjects ||
+    projects.filter((p) => p.status === "completed").length;
+  const pausedProjects = projects.filter((p) => p.status === "paused").length;
+  const totalBudget =
+    statistics?.totalBudget || projects.reduce((sum, p) => sum + p.budget, 0);
+  const totalExpenses =
+    statistics?.totalExpenses ||
+    projects.reduce((sum, p) => sum + p.totalExpenses, 0);
+  const remainingBudget =
+    statistics?.totalRemainingBudget ?? totalBudget - totalExpenses;
 
   // Show loading state
   if (isLoading) {
@@ -202,41 +255,70 @@ export default function ProjectsPage() {
     <>
       <div className="space-y-6">
         {/* Header Actions */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-between">
-          <div className="flex flex-col sm:flex-row gap-4 flex-1">
-            {/* Search */}
-            <div className="relative flex-1 max-w-md">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
-              </div>
-              <Input
-                type="text"
-                placeholder={t('projects.searchPlaceholder')}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+        <div className="space-y-4">
+          {/* Search */}
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-gray-400" />
             </div>
-
-            {/* Status Filter */}
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder={t('projects.selectStatus')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t('projects.allStatuses')}</SelectItem>
-                <SelectItem value="active">{t('common.active')}</SelectItem>
-                <SelectItem value="completed">{t('common.completed')}</SelectItem>
-                <SelectItem value="paused">{t('common.paused')}</SelectItem>
-              </SelectContent>
-            </Select>
+            <Input
+              type="text"
+              placeholder={t("projects.searchPlaceholder")}
+              value={filters.search}
+              onChange={(e) => handleFiltersChange({ search: e.target.value })}
+              className="pl-10 pr-10"
+            />
+            {filters.search && (
+              <button
+                onClick={() => handleFiltersChange({ search: "" })}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer hover:text-gray-700"
+                title={t("common.clearSearch")}
+                aria-label={t("common.clearSearch")}
+              >
+                <X className="h-4 w-4 text-gray-400" />
+              </button>
+            )}
           </div>
 
-          {/* Add Project Button */}
-          <Button onClick={handleCreateProject}>
-            <Plus className="w-5 h-5 mr-2" />
-            {t('projects.newProject')}
-          </Button>
+          {/* Filters and Actions - Same Row */}
+          <div className="flex items-center gap-3">
+            {/* Status Filter */}
+            <Select
+              value={filters.status}
+              onValueChange={(value) => handleFiltersChange({ status: value })}
+            >
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder={t("projects.selectStatus")} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t("projects.allStatuses")}</SelectItem>
+                <SelectItem value="active">{t("common.active")}</SelectItem>
+                <SelectItem value="completed">
+                  {t("common.completed")}
+                </SelectItem>
+                <SelectItem value="paused">{t("common.paused")}</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Add Project Button */}
+            <Button onClick={handleCreateProject} className="cursor-pointer">
+              <Plus className="w-5 h-5 mr-2" />
+              {t("projects.newProject")}
+            </Button>
+
+            {/* Clear Filters Button */}
+            {hasActiveFilters && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleClearFilters}
+                className="cursor-pointer"
+              >
+                <X className="w-4 h-4 mr-1" />
+                {t("common.clearFilters")}
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Bulk Actions */}
@@ -244,7 +326,7 @@ export default function ProjectsPage() {
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-blue-900">
-                {selectedProjects.length} {t('projects.projectsSelected')}
+                {selectedProjects.length} {t("projects.projectsSelected")}
               </span>
               <div className="flex items-center space-x-2">
                 <Button
@@ -253,14 +335,14 @@ export default function ProjectsPage() {
                   onClick={handleBulkDelete}
                   className="text-red-600 border-red-200 hover:bg-red-50"
                 >
-                  {t('projects.delete')}
+                  {t("projects.delete")}
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setSelectedProjects([])}
                 >
-                  {t('projects.cancel')}
+                  {t("projects.cancel")}
                 </Button>
               </div>
             </div>
@@ -269,7 +351,7 @@ export default function ProjectsPage() {
 
         {/* Projects Table */}
         <ProjectsTable
-          projects={filteredProjects}
+          projects={projects}
           selectedProjects={selectedProjects}
           onSelectProject={handleSelectProject}
           onSelectAll={handleSelectAll}
@@ -286,8 +368,12 @@ export default function ProjectsPage() {
                 <FolderOpen className="w-4 h-4 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">{t('projects.totalProjects')}</p>
-                <p className="text-lg font-semibold text-gray-900">{totalProjects}</p>
+                <p className="text-sm text-gray-600">
+                  {t("projects.totalProjects")}
+                </p>
+                <p className="text-lg font-semibold text-gray-900">
+                  {totalProjects}
+                </p>
               </div>
             </div>
           </div>
@@ -298,8 +384,12 @@ export default function ProjectsPage() {
                 <Users className="w-4 h-4 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">{t('projects.activeProjects')}</p>
-                <p className="text-lg font-semibold text-green-600">{activeProjects}</p>
+                <p className="text-sm text-gray-600">
+                  {t("projects.activeProjects")}
+                </p>
+                <p className="text-lg font-semibold text-green-600">
+                  {activeProjects}
+                </p>
               </div>
             </div>
           </div>
@@ -310,7 +400,9 @@ export default function ProjectsPage() {
                 <DollarSign className="w-4 h-4 text-purple-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">{t('projects.totalBudget')}</p>
+                <p className="text-sm text-gray-600">
+                  {t("projects.totalBudget")}
+                </p>
                 <p className="text-lg font-semibold text-gray-900">
                   {totalBudget.toLocaleString()} AZN
                 </p>
@@ -324,8 +416,12 @@ export default function ProjectsPage() {
                 <Calendar className="w-4 h-4 text-orange-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">{t('projects.completedProjects')}</p>
-                <p className="text-lg font-semibold text-orange-600">{completedProjects}</p>
+                <p className="text-sm text-gray-600">
+                  {t("projects.completedProjects")}
+                </p>
+                <p className="text-lg font-semibold text-orange-600">
+                  {completedProjects}
+                </p>
               </div>
             </div>
           </div>
@@ -337,18 +433,26 @@ export default function ProjectsPage() {
         isOpen={isFormOpen}
         onClose={handleCloseForm}
         onSubmit={handleFormSubmit}
-        title={editingProject ? t('projects.editProject') : t('projects.createProject')}
+        title={
+          editingProject
+            ? t("projects.editProject")
+            : t("projects.createProject")
+        }
         isLoading={isLoadingDetail && !!selectedProjectId}
-        initialData={editingProject ? {
-          id: editingProject.id,
-          name: editingProject.name,
-          description: editingProject.description,
-          status: editingProject.status,
-          startDate: editingProject.startDate,
-          endDate: editingProject.endDate,
-          assignedUsers: editingProject.assignedUsers,
-          targetBudget: editingProject.budget
-        } as any : undefined}
+        initialData={
+          editingProject
+            ? ({
+                id: editingProject.id,
+                name: editingProject.name,
+                description: editingProject.description,
+                status: editingProject.status,
+                startDate: editingProject.startDate,
+                endDate: editingProject.endDate,
+                assignedUsers: editingProject.assignedUsers,
+                targetBudget: editingProject.budget,
+              } as any)
+            : undefined
+        }
       />
 
       {/* View Modal */}

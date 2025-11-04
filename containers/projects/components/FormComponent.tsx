@@ -248,7 +248,7 @@ export default function FormComponent({
       <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
           {/* Project Name */}
           <div className="space-y-2">
-            <Label htmlFor="name">{t('projects.projectName')} (Az, Ru, En) *</Label>
+            <Label htmlFor="name">{t('projects.projectName')} *</Label>
             <Input
               {...register('name')}
               id="name"
@@ -261,7 +261,7 @@ export default function FormComponent({
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description">{t('common.description')} (Az, Ru, En)</Label>
+            <Label htmlFor="description">{t('common.description')} </Label>
             <Textarea
               {...register('description')}
               id="description"

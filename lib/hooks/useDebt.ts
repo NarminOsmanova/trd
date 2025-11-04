@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { debtService } from '@/lib/services/debtService';
 import { ApiDebt, CreateDebtRequest, GetDebtByIdResponse, PaginatedDebtsResponse, UpdateDebtRequest, SearchDebtorsResponse } from '@/containers/debt/types/debt-type';
 import { ApiResponse } from '@/containers/users/types/users-type';
+import { useEffect, useState } from 'react';
 
 // ==================== Types ====================
 export type DebtFilters = {
@@ -16,14 +17,27 @@ export type DebtFilters = {
 // ==================== Main Hook ====================
 export const useDebts = (filters: DebtFilters = {}) => {
   const queryClient = useQueryClient();
+  const [debouncedSearch, setDebouncedSearch] = useState(filters.search || '');
 
-  // Get paginated debts
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(filters.search || '');
+    }, 500); // 500ms debounce delay
+
+    return () => clearTimeout(timer);
+  }, [filters.search]);
+
+  // Get paginated debts with debounced search
   const { data, isLoading, error, refetch } = useQuery<PaginatedDebtsResponse>({
-    queryKey: ['debts', filters],
+    queryKey: ['debts', { 
+      ...filters, 
+      search: debouncedSearch // Use debounced search in query key
+    }],
     queryFn: () => debtService.getDebtsWithPagination(
       filters.pageNumber,
       filters.pageSize,
-      filters.search,
+      debouncedSearch, // Use debounced search in API call
       filters.status,
       filters.month,
       filters.year

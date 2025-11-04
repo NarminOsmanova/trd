@@ -1,3 +1,6 @@
+// ==================== Imports ====================
+import { OperationType } from '@/containers/transactions/types/transactions-type';
+
 // ==================== Enums ====================
 export enum Currency {
   AZN = 0,
@@ -18,6 +21,22 @@ export interface Company {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CompanyTransaction {
+  id: number;
+  description: string;
+  date: string;
+  category: string | null;
+  manager: string;
+  amount: number;
+  balanceAfter: number;
+  operationType: OperationType;
+}
+
+export interface CompanyDetails extends Company {
+  transactionCount: number;
+  transactions: CompanyTransaction[];
 }
 
 export interface CreateCompanyRequest {
@@ -54,7 +73,7 @@ export interface PaginatedCompaniesResponse {
 export interface GetCompanyByIdResponse {
   statusCode: number;
   message: string;
-  responseValue?: Company;
+  responseValue?: CompanyDetails;
 }
 
 export interface ApiResponse<T = void> {

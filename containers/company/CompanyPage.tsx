@@ -14,7 +14,7 @@ import {
   useUpdateCompany, 
   useDeleteCompany 
 } from '@/lib/hooks/useCompany';
-import { Company } from './types/company-type';
+import { Company, CompanyDetails } from './types/company-type';
 import { CompanyFormData } from './constants/validations';
 
 const CompanyPage = () => {
@@ -23,7 +23,7 @@ const CompanyPage = () => {
   const [editingCompanyId, setEditingCompanyId] = useState<number | null>(null);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [viewingCompanyId, setViewingCompanyId] = useState<number | null>(null);
-  const [viewingCompany, setViewingCompany] = useState<Company | null>(null);
+  const [viewingCompany, setViewingCompany] = useState<CompanyDetails | null>(null);
   
   const [filters, setFilters] = useState({
     search: '',

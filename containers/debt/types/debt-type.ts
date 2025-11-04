@@ -1,4 +1,11 @@
 
+// ==================== Enums ====================
+export enum DebtStatus {
+  Active = 0,
+  Paid = 1,
+  Overdue = 2
+}
+
 // ==================== Types ====================
 export interface ApiDebt {
   id: number;
@@ -7,7 +14,7 @@ export interface ApiDebt {
   currency: number; // 0=AZN, 1=USD, 2=EUR
   dueDate: string;
   description: string | null;
-  status: number; // 0=active, 1=paid, 2=overdue
+  status: DebtStatus;
   createdDate: string;
 }
 
@@ -77,7 +84,7 @@ export interface DebtDetail {
   createdDate: string;
   createdBy: string;
   description: string;
-  status: number;
+  status: DebtStatus;
   paymentProgressPercentage: number;
   remainingDays: number;
   payments: PaymentDetail[];
@@ -96,14 +103,59 @@ export interface ApiResponse<T = void> {
 }
 
 // ==================== Debtor Types ====================
+export enum RiskStatus {
+  Normal = 0,
+  ModerateRisk = 1,
+  HighRisk = 2
+}
+
 export interface Debtor {
   id: number;
   name: string;
-  riskStatus: number; // 0=Low Risk, 1=Medium Risk, 2=High Risk
+  riskStatus: RiskStatus;
 }
 
 export interface SearchDebtorsResponse {
   statusCode: number;
   message: string;
   responseValue?: Debtor[];
+}
+
+// ==================== Debt Payment Types ====================
+export interface DebtPayment {
+  id: number;
+  debtId: number;
+  amount: number;
+  paymentDate: string;
+  note: string;
+  debtorName?: string;
+  debtTotalAmount?: number;
+}
+
+export interface CreateDebtPaymentRequest {
+  debtId: number;
+  amount: number;
+  paymentDate: string;
+  note: string;
+}
+
+export interface UpdateDebtPaymentRequest {
+  debtPaymentId: number;
+  amount: number;
+  paymentDate: string;
+  note: string;
+}
+
+export interface PaginatedDebtPaymentsResponse {
+  statusCode: number;
+  message: string;
+  responseValue?: {
+    items: DebtPayment[];
+    pageNumber: number;
+    totalPages: number;
+    pageSize: number;
+    totalCount: number;
+    hasPreviousPage: boolean;
+    hasNextPage: boolean;
+  };
 }

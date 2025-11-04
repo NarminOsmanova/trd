@@ -8,15 +8,15 @@ import {
   DollarSign, 
   AlertTriangle, 
   CheckCircle, 
-  Clock,
   FileText,
   TrendingUp,
 } from 'lucide-react';
 import DialogComponent from '@/components/modals/DialogComponent';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { DebtDetail } from '../types/debt-type';
+import { DebtDetail, DebtStatus } from '../types/debt-type';
 import { formatDate, getInitials } from '@/lib/utils';
+import { getStatusColor, getStatusIcon, getStatusLabelKey, formatCurrency } from './debt-utils';
 
 interface DebtViewProps {
   isOpen: boolean;
@@ -40,58 +40,6 @@ export default function DebtView({
   const t = useTranslations('debt');
 
   if (!isOpen || !debt) return null;
-
-  const getStatusColor = (status: number) => {
-    switch (status) {
-      case 0: // active
-        return 'bg-blue-600 text-white border-blue-700';
-      case 1: // paid
-        return 'bg-green-600 text-white border-green-700';
-      case 2: // overdue
-        return 'bg-red-600 text-white border-red-700';
-      default:
-        return 'bg-gray-600 text-white border-gray-700';
-    }
-  };
-
-  const getStatusIcon = (status: number) => {
-    switch (status) {
-      case 0: // active
-        return <Clock className="w-4 h-4 text-white" />;
-      case 1: // paid
-        return <CheckCircle className="w-4 h-4 text-white" />;
-      case 2: // overdue
-        return <AlertTriangle className="w-4 h-4 text-white" />;
-      default:
-        return <Clock className="w-4 h-4 text-white" />;
-    }
-  };
-
-  const getStatusLabel = (status: number) => {
-    switch (status) {
-      case 0: // active
-        return t('active');
-      case 1: // paid
-        return t('paid');
-      case 2: // overdue
-        return t('overdue');
-      default:
-        return 'N/A';
-    }
-  };
-
-  const getCurrencySymbol = (currency: number) => {
-    switch (currency) {
-      case 0: return 'AZN';
-      case 1: return 'USD';
-      case 2: return 'EUR';
-      default: return 'AZN';
-    }
-  };
-
-  const formatCurrency = (amount: number, currency: number) => {
-    return `${amount.toFixed(2)} ${getCurrencySymbol(currency)}`;
-  };
 
   const overdue = debt.remainingDays < 0;
   const payments = debt.payments || [];
@@ -117,9 +65,9 @@ export default function DebtView({
             <div className="flex items-center space-x-2">
               <Badge className={`${getStatusColor(debt.status)} flex items-center gap-1 border`}>
                 {getStatusIcon(debt.status)}
-                {getStatusLabel(debt.status)}
+                {t(getStatusLabelKey(debt.status))}
               </Badge>
-              {overdue && debt.status === 0 && (
+              {overdue && debt.status === DebtStatus.Active && (
                 <Badge className="bg-red-600 text-white border-red-700 border flex items-center gap-1">
                   <AlertTriangle className="w-3 h-3 text-white" />
                   {t('overdue')}
@@ -175,7 +123,7 @@ export default function DebtView({
         </div>
 
         {/* Payment Progress Bar */}
-        {debt.status === 0 && (
+        {debt.status === DebtStatus.Active && (
           <div className="bg-white rounded-lg p-4 border border-gray-200">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-gray-700">{t('paymentProgress')}</span>
@@ -206,7 +154,7 @@ export default function DebtView({
                 <p className={`text-lg font-semibold ${overdue ? 'text-red-600' : 'text-gray-900'}`}>
                   {formatDate(debt.dueDate)}
                 </p>
-                {!overdue && debt.status === 0 && (
+                {!overdue && debt.status === DebtStatus.Active && (
                   <p className="text-xs text-gray-500">
                     {debt.remainingDays > 0 ? `${debt.remainingDays} ${t('daysRemaining')}` : t('dueToday')}
                   </p>
@@ -293,30 +241,7 @@ export default function DebtView({
           </div>
         )}
 
-        {/* Progress Bar for Active Debts */}
-        {debt.status === 0 && (
-          <div className="bg-white rounded-lg p-4 border border-gray-200">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">{t('durationProgress')}</span>
-              <span className="text-sm text-gray-500">{Math.max(0, debt.remainingDays)} {t('daysRemaining')}</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-3">
-              <div
-                className={`h-3 rounded-full transition-all duration-300 ${
-                  overdue ? 'bg-red-500 w-full' :
-                  debt.remainingDays <= 7 ? 'bg-orange-500 w-3/4' :
-                  debt.remainingDays <= 30 ? 'bg-yellow-500 w-1/2' :
-                  'bg-green-500 w-1/4'
-                }`}
-              ></div>
-            </div>
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>{t('start')}</span>
-              <span>{t('end')}</span>
-            </div>
-          </div>
-        )}
-
+       
         {/* Action Buttons */}
         <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
           <Button
@@ -325,48 +250,7 @@ export default function DebtView({
           >
             {t('close')}
           </Button>
-          {onAddPayment && debt.status === 0 && debt.remainingAmount > 0 && (
-            <Button
-              onClick={() => {
-                const amount = prompt(`${t('enterPaymentAmount')} ${formatCurrency(debt.remainingAmount, debt.currency)}):`);
-                if (amount && !isNaN(Number(amount)) && Number(amount) > 0) {
-                  const paymentAmount = Number(amount);
-                  if (paymentAmount <= debt.remainingAmount) {
-                    const note = prompt(t('paymentNote'));
-                    onAddPayment(debt.id.toString(), {
-                      amount: paymentAmount,
-                      paymentDate: new Date().toISOString().split('T')[0],
-                      note: note || undefined
-                    });
-                  } else {
-                    alert(t('paymentExceedsRemaining'));
-                  }
-                }
-              }}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              <DollarSign className="w-4 h-4 mr-2" />
-              {t('addPayment')}
-            </Button>
-          )}
-          {onEdit && (
-            <Button
-              variant="outline"
-              onClick={() => onEdit(debt)}
-              className="text-blue-600 border-blue-200 hover:bg-blue-50"
-            >
-              {t('edit')}
-            </Button>
-          )}
-          {onMarkAsPaid && debt.status === 0 && debt.remainingAmount === 0 && (
-            <Button
-              onClick={() => onMarkAsPaid(debt.id.toString())}
-              className="bg-green-600 hover:bg-green-700 text-white"
-            >
-              <CheckCircle className="w-4 h-4 mr-2" />
-              {t('markAsPaid')}
-            </Button>
-          )}
+         
           {onDelete && (
             <Button
               variant="outline"
