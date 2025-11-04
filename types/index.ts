@@ -7,6 +7,8 @@ export interface User {
   avatar?: string;
   phone?: string;
   position?: string;
+  type?: number; // 0=User, 1=Partner (UserType enum)
+  status?: number; // 0=Pending, 1=Active, 2=Inactive, 3=Blocked (UserStatus enum)
   isActive?: boolean;
   createdAt: string;
   updatedAt: string;

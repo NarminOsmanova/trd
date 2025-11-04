@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { 
   Mail,
   Phone,
@@ -15,73 +15,118 @@ import {
   FileText,
   ArrowUpRight,
   ArrowDownLeft,
-  Building2
+  Building2,
+  Activity,
+  Briefcase,
+  Ban
 } from 'lucide-react';
-import { User } from '../types/users-type';
-import { mockData } from '@/lib/mock-data';
-import { formatDate, getRoleLabel, getInitials } from '@/lib/utils';
+import { useTranslations, useLocale } from 'next-intl';
+import { useUser } from '@/lib/hooks/useUsers';
+import { formatDate, getInitials } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import DialogComponent from '@/components/modals/DialogComponent';
+import { ProjectStatus } from '@/containers/projects/types/projects-type';
+import { UserStatus, UserType } from '@/containers/users/types/users-type';
 
 interface UserViewModalProps {
+  userId: string;
   isOpen: boolean;
   onClose: () => void;
-  user: User | null;
 }
 
 export default function UserViewModal({
+  userId,
   isOpen,
-  onClose,
-  user
+  onClose
 }: UserViewModalProps) {
+  const t = useTranslations('users');
+  const locale = useLocale();
+  const { data, isLoading } = useUser(userId, isOpen);
   
-  if (!user) return null;
+  const user = data?.responseValue;
 
-  const getUserTransactions = (userId: string) => {
-    return mockData.transactions.filter(t => t.userId === userId);
-  };
-
-  const getBudgetInfo = (userId: string) => {
-    const userTransactions = getUserTransactions(userId);
-    const totalAmount = userTransactions.reduce((sum, t) => sum + t.amount, 0);
-    const transactionCount = userTransactions.length;
+  // Get user name based on current locale
+  const userName = useMemo(() => {
+    if (!user?.sets || user.sets.length === 0) return 'N/A';
     
-    return {
-      totalAmount,
-      transactionCount,
-      avgTransaction: transactionCount > 0 ? totalAmount / transactionCount : 0,
-      incomeTransactions: userTransactions.filter(t => t.type === 'income'),
-      expenseTransactions: userTransactions.filter(t => t.type === 'expense')
+    const localizedSet = user.sets.find(set => set.language === locale);
+    if (localizedSet) {
+      return `${localizedSet.firstName} ${localizedSet.lastName}`;
+    }
+    
+    const firstSet = user.sets[0];
+    return `${firstSet.firstName} ${firstSet.lastName}`;
+  }, [user, locale]);
+
+  // Get initials for avatar
+  const initials = useMemo(() => {
+    if (!user?.sets || user.sets.length === 0) return 'NA';
+    
+    const localizedSet = user.sets.find(set => set.language === locale) || user.sets[0];
+    return `${localizedSet.firstName?.[0] || ''}${localizedSet.lastName?.[0] || ''}`.toUpperCase();
+  }, [user, locale]);
+
+  const getOperationTypeLabel = (type: number) => {
+    const types: { [key: number]: string } = {
+      0: t('income'),
+      1: t('expense'),
+      2: t('transfer'),
+      3: t('accountIncrease')
     };
+    return types[type] || t('unknown');
   };
 
-  const getUserProjects = (userId: string) => {
-    return mockData.projects.filter(p => p.assignedUsers.includes(userId));
+  const getOperationTypeColor = (type: number) => {
+    if (type === 0) return 'text-green-600';
+    if (type === 1) return 'text-red-600';
+    if (type === 2) return 'text-blue-600';
+    return 'text-gray-600';
   };
 
-  const getTransactionCategoryLabel = (category: string) => {
-    const labels: { [key: string]: string } = {
-      material: 'Material',
-      salary: 'Maaş',
-      equipment: 'Avadanlıq',
-      transport: 'Nəqliyyat',
-      utilities: 'Kommunal',
-      rent: 'Kirayə',
-      marketing: 'Marketinq',
-      other: 'Digər'
+  const getProjectStatusLabel = (status: number) => {
+    const statuses: { [key: number]: string } = {
+      [ProjectStatus.Draft]: t('planning'),
+      [ProjectStatus.Active]: t('active'),
+      [ProjectStatus.Completed]: t('completed'),
+      [ProjectStatus.Paused]: t('paused')
     };
-    return labels[category] || category;
+    return statuses[status] || t('unknown');
   };
 
-  const budgetInfo = getBudgetInfo(user.id);
-  const userProjects = getUserProjects(user.id);
-  const userTransactions = getUserTransactions(user.id);
+  const getProjectStatusVariant = (status: number): "success" | "default" | "secondary" | "destructive" => {
+    if (status === ProjectStatus.Active) return 'success';
+    if (status === ProjectStatus.Completed) return 'default';
+    if (status === ProjectStatus.Paused) return 'destructive';
+    if (status === ProjectStatus.Draft) return 'secondary';
+    return 'secondary';
+  };
+
+  const formatCurrency = (amount: number, currency?: string) => {
+    return `${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currency || 'AZN'}`;
+  };
+
+  if (isLoading || !user) {
+    return (
+      <DialogComponent
+        open={isOpen}
+        setOpen={(open) => !open && onClose()}
+        title={t('userDetails')}
+        size="xl"
+        maxHeight="max-h-[95vh]"
+      >
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <span className="ml-3 text-gray-600">{t('loading')}</span>
+        </div>
+      </DialogComponent>
+    );
+  }
 
   return (
     <DialogComponent
       open={isOpen}
       setOpen={(open) => !open && onClose()}
-      title="İstifadəçi Məlumatları"
+      title={t('userDetails')}
       size="xl"
       maxHeight="max-h-[95vh]"
       className=""
@@ -95,42 +140,61 @@ export default function UserViewModal({
                 {user.avatar ? (
                   <img 
                     src={user.avatar} 
-                    alt={user.name}
+                    alt={userName}
                     className="w-20 h-20 rounded-full object-cover border-4 border-white shadow-lg"
                   />
                 ) : (
                   <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center border-4 border-white shadow-lg">
                     <span className="text-white font-bold text-xl">
-                      {getInitials(user?.name || '')}
+                      {initials}
                     </span>
                   </div>
                 )}
                 <div className={`absolute -bottom-2 -right-2 w-6 h-6 rounded-full border-4 border-white ${
-                  user.isActive ? 'bg-green-500' : 'bg-red-500'
+                  user.status === UserStatus.Active ? 'bg-green-500' : 
+                  user.status === UserStatus.Pending ? 'bg-gray-400' :
+                  user.status === UserStatus.Blocked ? 'bg-red-600' :
+                  'bg-red-500'
                 }`} />
               </div>
               
               <div className="flex-1">
                 <div className="flex items-center space-x-4 mb-2">
-                  <h2 className="text-2xl font-bold text-gray-900">{user.name}</h2>
+                  <h2 className="text-2xl font-bold text-gray-900">{userName}</h2>
                   <div className="flex items-center space-x-2">
-                    {user.role === 'admin' ? (
-                      <Shield className="w-5 h-5 text-purple-600" />
+                    {user.type === UserType.Partner ? (
+                      <ShieldCheck className="w-5 h-5 text-indigo-600" />
                     ) : (
-                      <ShieldCheck className="w-5 h-5 text-blue-600" />
+                      <Shield className="w-5 h-5 text-blue-600" />
                     )}
-                    <Badge variant={user.role === 'admin' ? 'secondary' : 'default'} className="text-sm">
-                      {getRoleLabel(user.role)}
+                    <Badge variant={user.type === UserType.Partner ? 'default' : 'secondary'} className="text-sm">
+                      {user.type === UserType.Partner ? t('partner') : t('manager')}
                     </Badge>
                   </div>
                   <div className="flex items-center">
-                    {user.isActive ? (
+                    {user.status === UserStatus.Active ? (
                       <UserCheck className="w-5 h-5 text-green-600 mr-1" />
+                    ) : user.status === UserStatus.Pending ? (
+                      <Clock className="w-5 h-5 text-gray-600 mr-1" />
+                    ) : user.status === UserStatus.Blocked ? (
+                      <Ban className="w-5 h-5 text-red-600 mr-1" />
                     ) : (
-                      <UserX className="w-5 h-5 text-red-600 mr-1" />
+                      <UserX className="w-5 h-5 text-red-500 mr-1" />
                     )}
-                    <Badge variant={user.isActive ? 'success' : 'destructive'} className="text-sm">
-                      {user.isActive ? 'Aktiv' : 'Qeyri-aktiv'}
+                    <Badge 
+                      variant={
+                        user.status === UserStatus.Active ? 'success' : 
+                        user.status === UserStatus.Pending ? 'secondary' :
+                        user.status === UserStatus.Blocked ? 'destructive' : 
+                        'destructive'
+                      } 
+                      className="text-sm"
+                    >
+                      {user.status === UserStatus.Active ? t('active') : 
+                       user.status === UserStatus.Inactive ? t('inactive') :
+                       user.status === UserStatus.Pending ? t('pending') :
+                       user.status === UserStatus.Blocked ? t('blocked') :
+                       t('unknown')}
                     </Badge>
                   </div>
                 </div>
@@ -142,101 +206,110 @@ export default function UserViewModal({
                   </div>
                   {user.position && (
                     <div className="flex items-center">
-                      <span className="inline-flex items-center px-2 py-1 rounded-md bg-gray-100 text-gray-700 mr-2">{user.position}</span>
+                      <span className="inline-flex items-center px-2 py-1 rounded-md bg-gray-100 text-gray-700 mr-2">{user.position.name}</span>
                     </div>
                   )}
                   {user.phone && (
                     <div className="flex items-center">
                       <Phone className="w-4 h-4 mr-2 text-gray-400" />
-                      <span>{user.phone}</span>
+                      <span>+{user.phone}</span>
                     </div>
                   )}
                   <div className="flex items-center">
                     <Calendar className="w-4 h-4 mr-2 text-gray-400" />
-                    <span>Qoşulma: {formatDate(user.createdAt)}</span>
+                    <span>{t('joinDate')}: {formatDate(user.createdDate || new Date().toISOString())}</span>
                   </div>
                   <div className="flex items-center">
                     <Clock className="w-4 h-4 mr-2 text-gray-400" />
-                    <span>ID: {user.id}</span>
+                    <span>{t('id')}: {user.id}</span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Budget Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center">
-                  <DollarSign className="w-5 h-5 text-green-600 mr-2" />
-                  <span className="text-sm font-medium text-gray-700">Ümumi Büdcə</span>
+          {/* Statistics Overview */}
+          {user.statistics && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl shadow-sm border border-green-200 p-6">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                    <DollarSign className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="text-xs text-green-700 font-medium">{t('totalBudget')}</span>
+                </div>
+                <div className="text-xl font-bold text-green-900">
+                  {formatCurrency(user.statistics.totalBudget, user.statistics.currency)}
                 </div>
               </div>
-              <div className="text-2xl font-bold text-green-600">
-                {budgetInfo.totalAmount.toLocaleString()} AZN
-              </div>
-              <div className="text-xs text-gray-500 mt-1">
-                {budgetInfo.transactionCount} əməliyyat
-              </div>
-            </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center">
-                  <TrendingUp className="w-5 h-5 text-blue-600 mr-2" />
-                  <span className="text-sm font-medium text-gray-700">Orta Əməliyyat</span>
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow-sm border border-blue-200 p-6">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                    <Activity className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="text-xs text-blue-700 font-medium">{t('operations')}</span>
+                </div>
+                <div className="text-xl font-bold text-blue-900">
+                  {user.statistics.totalOperations}
                 </div>
               </div>
-              <div className="text-2xl font-bold text-blue-600">
-                {budgetInfo.avgTransaction.toLocaleString()} AZN
-              </div>
-              <div className="text-xs text-gray-500 mt-1">
-                Əməliyyat başına
-              </div>
-            </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center">
-                  <Building2 className="w-5 h-5 text-purple-600 mr-2" />
-                  <span className="text-sm font-medium text-gray-700">Layihələr</span>
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl shadow-sm border border-purple-200 p-6">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
+                    <TrendingUp className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="text-xs text-purple-700 font-medium">{t('averageAmount')}</span>
+                </div>
+                <div className="text-xl font-bold text-purple-900">
+                  {formatCurrency(user.statistics.averageAmountPerOperation, user.statistics.currency)}
                 </div>
               </div>
-              <div className="text-2xl font-bold text-purple-600">
-                {userProjects.length}
-              </div>
-              <div className="text-xs text-gray-500 mt-1">
-                Aktiv layihələr
+
+              <div className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl shadow-sm border border-orange-200 p-6">
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
+                    <Briefcase className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="text-xs text-orange-700 font-medium">{t('activeProjects')}</span>
+                </div>
+                <div className="text-xl font-bold text-orange-900">
+                  {user.statistics.activeProjectsCount}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Projects Section */}
-          {userProjects.length > 0 && (
+          {user.projects && user.projects.length > 0 && (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <Building2 className="w-5 h-5 mr-2 text-purple-600" />
-                Layihələr
+                {t('projects')} ({user.projects.length})
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {userProjects.map((project) => (
-                  <div key={project.id} className="border border-gray-200 rounded-lg p-4">
+                {user.projects.map((project) => (
+                  <div key={project.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="font-medium text-gray-900">{project.name}</h4>
-                      <Badge variant={project.status === 'active' ? 'success' : project.status === 'completed' ? 'default' : 'secondary'}>
-                        {project.status === 'active' ? 'Aktiv' : project.status === 'completed' ? 'Tamamlandı' : 'Dayandırıldı'}
+                      <Badge variant={getProjectStatusVariant(project.status)}>
+                        {getProjectStatusLabel(project.status)}
                       </Badge>
                     </div>
                     <p className="text-sm text-gray-600 mb-3">{project.description}</p>
-                    <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="grid grid-cols-3 gap-2 text-xs">
                       <div>
-                        <span className="text-gray-500">Büdcə:</span>
-                        <div className="font-medium">{project.budget.toLocaleString()} AZN</div>
+                        <span className="text-gray-500">{t('plan')}:</span>
+                        <div className="font-medium text-blue-600">{project.plannedCapital.toLocaleString()} AZN</div>
                       </div>
                       <div>
-                        <span className="text-gray-500">Xərc:</span>
-                        <div className="font-medium">{project.totalExpenses.toLocaleString()} AZN</div>
+                        <span className="text-gray-500">{t('spent')}:</span>
+                        <div className="font-medium text-red-600">{project.totalExpenses.toLocaleString()} AZN</div>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">{t('remaining')}:</span>
+                        <div className="font-medium text-green-600">{project.remainingBudget.toLocaleString()} AZN</div>
                       </div>
                     </div>
                   </div>
@@ -245,50 +318,61 @@ export default function UserViewModal({
             </div>
           )}
 
-          {/* Transactions Section */}
+          {/* Recent Operations Section */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 min-h-[300px]">
             <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
               <FileText className="w-5 h-5 mr-2 text-blue-600" />
-              Əməliyyatlar ({userTransactions.length})
+              {t('recentOperations')} {user.recentOperations && `(${user.recentOperations.length})`}
             </h3>
             
-            {userTransactions.length > 0 ? (
+            {user.recentOperations && user.recentOperations.length > 0 ? (
               <div className="space-y-2 max-h-96 overflow-y-auto">
                 {/* Header Row */}
-                <div className="grid grid-cols-4 items-center text-xs text-gray-500 px-1 pb-2 border-b border-gray-200">
-                  <div>Tarix</div>
-                  <div>Tip</div>
-                  <div>Təsvir</div>
-                  <div className="text-right">Məbləğ</div>
+                <div className="grid grid-cols-5 items-center text-xs text-gray-500 px-1 pb-2 border-b border-gray-200">
+                  <div>{t('date')}</div>
+                  <div>{t('operationType')}</div>
+                  <div>{t('project')}</div>
+                  <div>{t('description')}</div>
+                  <div className="text-right">{t('amount')}</div>
                 </div>
                 
-                {/* Transactions List */}
-                {userTransactions.map((transaction) => {
-                  const project = mockData.projects.find(p => p.id === transaction.projectId);
+                {/* Operations List */}
+                {user.recentOperations.map((operation) => {
+                  const isIncome = operation.type === 0;
+                  const isExpense = operation.type === 1;
                   return (
-                    <div key={transaction.id} className="bg-white rounded-lg p-3 grid grid-cols-4 items-center gap-2 border border-gray-100">
+                    <div key={operation.id} className="bg-white rounded-lg p-3 grid grid-cols-5 items-center gap-2 border border-gray-100 hover:shadow-sm transition-shadow">
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{formatDate(transaction.date)}</p>
-                        <p className="text-xs text-gray-500">{getTransactionCategoryLabel(transaction.category)}</p>
+                        <p className="text-sm font-medium text-gray-900">{formatDate(operation.date)}</p>
                       </div>
                       <div>
                         <div className="flex items-center">
-                          {transaction.type === 'income' ? (
+                          {isIncome ? (
                             <ArrowUpRight className="w-4 h-4 text-green-600 mr-1" />
-                          ) : (
+                          ) : isExpense ? (
                             <ArrowDownLeft className="w-4 h-4 text-red-600 mr-1" />
+                          ) : (
+                            <Activity className="w-4 h-4 text-blue-600 mr-1" />
                           )}
-                          <Badge variant={transaction.type === 'income' ? 'success' : 'destructive'} className="text-xs">
-                            {transaction.type === 'income' ? 'Mədaxil' : 'Məxaric'}
+                          <Badge 
+                            variant={isIncome ? 'success' : isExpense ? 'destructive' : 'default'} 
+                            className="text-xs"
+                          >
+                            {getOperationTypeLabel(operation.type)}
                           </Badge>
                         </div>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-900 mb-1">{transaction.description}</p>
-                        <p className="text-xs text-gray-500">{project?.name || 'Naməlum layihə'}</p>
+                        <p className="text-sm font-medium text-gray-900">{operation.projectName}</p>
+                        {operation.categoryName && operation.categoryName !== '—' && (
+                          <p className="text-xs text-gray-500">{operation.categoryName}</p>
+                        )}
                       </div>
-                      <div className={`text-sm font-semibold text-right ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
-                        {transaction.type === 'income' ? '+' : '-'}{transaction.amount.toLocaleString()} AZN
+                      <div>
+                        <p className="text-sm text-gray-900">{operation.description}</p>
+                      </div>
+                      <div className={`text-sm font-semibold text-right ${getOperationTypeColor(operation.type)}`}>
+                        {isIncome ? '+' : isExpense ? '-' : ''}{operation.amount.toLocaleString()} AZN
                       </div>
                     </div>
                   );
@@ -297,7 +381,7 @@ export default function UserViewModal({
             ) : (
               <div className="text-center py-8">
                 <FileText className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                <p className="text-gray-600">Bu istifadəçinin əməliyyatı yoxdur</p>
+                <p className="text-gray-600">{t('noOperations')}</p>
               </div>
             )}
           </div>

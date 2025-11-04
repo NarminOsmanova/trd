@@ -18,7 +18,7 @@ export const userFormSchema = z.object({
       return /^(\+994|0)?(50|51|55|70|77|99)[0-9]{7}$/.test(val);
     }, 'Düzgün telefon nömrəsi formatı daxil edin'),
   role: z
-    .enum(['admin', 'user'], {
+    .enum(['admin', 'user', 'partner'], {
       required_error: 'Rol seçin'
     }),
   isActive: z
@@ -28,7 +28,7 @@ export const userFormSchema = z.object({
 
 export const userFiltersSchema = z.object({
   searchTerm: z.string().optional(),
-  role: z.enum(['admin', 'user']).optional(),
+  role: z.enum(['admin', 'user', 'partner']).optional(),
   status: z.enum(['active', 'inactive']).optional()
 });
 

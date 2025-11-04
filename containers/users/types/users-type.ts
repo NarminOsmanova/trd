@@ -12,6 +12,10 @@ export enum UserStatus {
   Blocked = 3,
 }
 
+// UI Filter Types
+export type UserRoleFilter = 'all' | 'user' | 'partner';
+export type UserStatusFilter = 'all' | 'active' | 'inactive' | 'pending' | 'blocked';
+
 // ==================== Base User Interface ====================
 export interface User {
   id: string;
@@ -38,11 +42,17 @@ export interface CurrentUserInfoResponse {
 // GET /api/web/user/get-all-with-pagination
 export interface ApiUser {
   id: number;
+  avatar?: string;
   set?: {
     firstName?: string;
     lastName?: string;
     language?: string;
   } | null;
+  sets?: Array<{
+    firstName: string;
+    lastName: string;
+    language: string;
+  }>;
   email?: string;
   phone?: string;
   type: UserType;
@@ -54,8 +64,35 @@ export interface ApiUser {
   position?: {
     id: number;
     name: string;
+    language?: string;
   } | null;
   createdAt?: string;
+  createdDate?: string;
+  statistics?: {
+    totalBudget: number;
+    totalOperations: number;
+    averageAmountPerOperation: number;
+    activeProjectsCount: number;
+    currency: string;
+  };
+  projects?: Array<{
+    id: number;
+    name: string;
+    description: string;
+    status: number;
+    plannedCapital: number;
+    totalExpenses: number;
+    remainingBudget: number;
+  }>;
+  recentOperations?: Array<{
+    id: number;
+    date: string;
+    type: number;
+    description: string;
+    amount: number;
+    projectName: string;
+    categoryName: string;
+  }>;
 }
 
 export interface PaginatedUsersResponse {
@@ -151,6 +188,48 @@ export interface ChangePasswordRequest {
 export interface ChangePasswordResponse {
   statusCode: number;
   message: string;
+}
+
+// POST /api/web/user/refresh-token
+export interface RefreshTokenRequest {
+  refreshToken: string;
+}
+
+export interface RefreshTokenResponse {
+  statusCode: number;
+  message: string;
+  data?: {
+    token: string;
+    refreshToken: string;
+  };
+}
+
+// PUT /api/web/user/update-user-infos
+export interface UpdateUserInfosRequest {
+  id: number;
+  email: string;
+  phone: string;
+  roleId: number;
+  positionId: number;
+  sets: Array<{
+    language: string;
+    firstName: string;
+    lastName: string;
+  }>;
+}
+
+export interface UpdateUserInfosResponse {
+  statusCode: number;
+  message: string;
+}
+
+// PUT /api/web/user/update-avatar
+export interface UpdateAvatarResponse {
+  statusCode: number;
+  message: string;
+  data?: {
+    avatarUrl: string;
+  };
 }
 
 // ==================== Utility Types ====================

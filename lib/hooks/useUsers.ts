@@ -10,6 +10,7 @@ import type {
   CompleteRegistrationRequest,
   LoginRequest,
   ChangePasswordRequest,
+  UpdateUserInfosRequest,
   ApiUser,
 } from '@/containers/users/types/users-type';
 
@@ -49,19 +50,32 @@ export const useUsers = (filters: UserFilters = {}) => {
   });
 
   // Transform API users to app users
-  const transformApiUser = (apiUser: ApiUser): User => ({
-    id: apiUser.id.toString(),
-    name: apiUser.set 
-      ? `${apiUser.set.firstName || ''} ${apiUser.set.lastName || ''}`.trim() 
-      : 'N/A',
-    email: apiUser.email || '',
-    phone: apiUser.phone || '',
-    position: apiUser.position?.name || '',
-    role: (apiUser.type as number) === 1 ? 'partner' : 'user',
-    isActive: apiUser.status === 1,
-    createdAt: apiUser.createdAt || new Date().toISOString(),
-    updatedAt: apiUser.createdAt || new Date().toISOString(),
-  });
+  const transformApiUser = (apiUser: ApiUser): User => {
+    // Try to get name from sets array first (new API), fallback to set object (old API)
+    let name = 'N/A';
+    if (apiUser.sets && apiUser.sets.length > 0) {
+      const firstSet = apiUser.sets[0];
+      name = `${firstSet.firstName || ''} ${firstSet.lastName || ''}`.trim();
+    } else if (apiUser.set) {
+      name = `${apiUser.set.firstName || ''} ${apiUser.set.lastName || ''}`.trim();
+    }
+
+    return {
+      id: apiUser.id.toString(),
+      name,
+      email: apiUser.email || '',
+      phone: apiUser.phone || '',
+      position: apiUser.position?.name || '',
+      // Prioritize role.name over type for role mapping
+      role: apiUser.role?.name === 'Admin' ? 'admin' : (apiUser.type === 1 ? 'partner' : 'user'),
+      type: apiUser.type,
+      status: apiUser.status,
+      isActive: apiUser.status === 1,
+      avatar: apiUser.avatar,
+      createdAt: apiUser.createdDate || apiUser.createdAt || new Date().toISOString(),
+      updatedAt: apiUser.createdDate || apiUser.createdAt || new Date().toISOString(),
+    };
+  };
 
   const transformedUsers = data?.responseValue?.items?.map(transformApiUser) || [];
 
@@ -94,19 +108,32 @@ export const useAllUsers = (searchTerm: string = "") => {
   });
 
   // Transform API users to app users
-  const transformApiUser = (apiUser: ApiUser): User => ({
-    id: apiUser.id.toString(),
-    name: apiUser.set 
-      ? `${apiUser.set.firstName || ''} ${apiUser.set.lastName || ''}`.trim() 
-      : 'N/A',
-    email: apiUser.email || '',
-    phone: apiUser.phone || '',
-    position: apiUser.position?.name || '',
-    role: (apiUser.type as number) === 1 ? 'partner' : 'user',
-    isActive: apiUser.status === 1,
-    createdAt: apiUser.createdAt || new Date().toISOString(),
-    updatedAt: apiUser.createdAt || new Date().toISOString(),
-  });
+  const transformApiUser = (apiUser: ApiUser): User => {
+    // Try to get name from sets array first (new API), fallback to set object (old API)
+    let name = 'N/A';
+    if (apiUser.sets && apiUser.sets.length > 0) {
+      const firstSet = apiUser.sets[0];
+      name = `${firstSet.firstName || ''} ${firstSet.lastName || ''}`.trim();
+    } else if (apiUser.set) {
+      name = `${apiUser.set.firstName || ''} ${apiUser.set.lastName || ''}`.trim();
+    }
+
+    return {
+      id: apiUser.id.toString(),
+      name,
+      email: apiUser.email || '',
+      phone: apiUser.phone || '',
+      position: apiUser.position?.name || '',
+      // Prioritize role.name over type for role mapping
+      role: apiUser.role?.name === 'Admin' ? 'admin' : (apiUser.type === 1 ? 'partner' : 'user'),
+      type: apiUser.type,
+      status: apiUser.status,
+      isActive: apiUser.status === 1,
+      avatar: apiUser.avatar,
+      createdAt: apiUser.createdDate || apiUser.createdAt || new Date().toISOString(),
+      updatedAt: apiUser.createdDate || apiUser.createdAt || new Date().toISOString(),
+    };
+  };
 
   const transformedUsers = data?.responseValue?.map(transformApiUser) || [];
 
@@ -211,6 +238,45 @@ export const useChangeUserStatus = () => {
     mutationFn: ({ userId, status }: { userId: number; status: number }) =>
       usersService.changeStatus(userId, status),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    },
+  });
+};
+
+// ==================== Refresh Token ====================
+export const useRefreshToken = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (refreshToken: string) => usersService.refreshToken(refreshToken),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['current-user'] });
+    },
+  });
+};
+
+// ==================== Update User Infos ====================
+export const useUpdateUserInfos = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: UpdateUserInfosRequest) => usersService.updateUserInfos(data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['user', variables.id.toString()] });
+      queryClient.invalidateQueries({ queryKey: ['current-user'] });
+    },
+  });
+};
+
+// ==================== Update Avatar ====================
+export const useUpdateAvatar = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (avatar: File) => usersService.updateAvatar(avatar),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['current-user'] });
       queryClient.invalidateQueries({ queryKey: ['users'] });
     },
   });

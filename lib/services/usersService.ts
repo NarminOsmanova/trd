@@ -11,9 +11,14 @@ import type {
   LoginResponse,
   ChangePasswordRequest,
   ChangePasswordResponse,
+  RefreshTokenRequest,
+  RefreshTokenResponse,
+  UpdateUserInfosRequest,
+  UpdateUserInfosResponse,
+  UpdateAvatarResponse,
   ApiResponse,
 } from '@/containers/users/types/users-type';
-import { axiosInstance } from '@/lib/axios';
+import { axiosInstance, setAuthTokens, clearAuthCookies, AuthTokens } from '@/lib/axios';
 
 /**
  * Users Service
@@ -72,9 +77,14 @@ export const usersService = {
   async completeRegistration(data: CompleteRegistrationRequest): Promise<CompleteRegistrationResponse> {
     const response = await axiosInstance.post('/web/user/complete-registration', data);
     
-    // Store token if successful
-    if (response.data.data?.token && typeof window !== 'undefined') {
-      localStorage.setItem('authToken', response.data.data.token);
+    // Store tokens in cookies if successful
+    if (response.data.data?.token && response.data.data?.refreshToken) {
+      const tokens: AuthTokens = {
+        accessToken: response.data.data.token,
+        refreshToken: response.data.data.refreshToken,
+        expiration: response.data.data.expiration || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      };
+      setAuthTokens(tokens);
     }
     
     return response.data;
@@ -84,9 +94,14 @@ export const usersService = {
   async login(data: LoginRequest): Promise<LoginResponse> {
     const response = await axiosInstance.post('/web/user/login', data);
     
-    // Store token if successful
-    if (response.data.data?.token && typeof window !== 'undefined') {
-      localStorage.setItem('authToken', response.data.data.token);
+    // Store tokens in cookies if successful
+    if (response.data.data?.token && response.data.data?.refreshToken) {
+      const tokens: AuthTokens = {
+        accessToken: response.data.data.token,
+        refreshToken: response.data.data.refreshToken,
+        expiration: response.data.data.expiration || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      };
+      setAuthTokens(tokens);
     }
     
     return response.data;
@@ -96,11 +111,8 @@ export const usersService = {
   async logout(): Promise<ApiResponse<void>> {
     const response = await axiosInstance.post('/web/user/logout');
     
-    // // Remove token
-    // if (typeof window !== 'undefined') {
-    //   localStorage.removeItem('authToken');
-    //   sessionStorage.removeItem('authToken');
-    // }
+    // Remove all auth cookies
+    clearAuthCookies();
     
     return response.data;
   },
@@ -124,6 +136,44 @@ export const usersService = {
   async deleteUser(id: number): Promise<ApiResponse<void>> {
     const response = await axiosInstance.delete('/web/user/delete', {
       params: { Id: id }
+    });
+    return response.data;
+  },
+
+  // POST /api/web/user/refresh-token
+  async refreshToken(refreshToken: string): Promise<RefreshTokenResponse> {
+    const response = await axiosInstance.post('/web/user/refresh-token', null, {
+      params: { RefreshToken: refreshToken }
+    });
+    
+    // Store new tokens in cookies if successful
+    if (response.data.data?.token && response.data.data?.refreshToken) {
+      const tokens: AuthTokens = {
+        accessToken: response.data.data.token,
+        refreshToken: response.data.data.refreshToken,
+        expiration: response.data.data.expiration || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      };
+      setAuthTokens(tokens);
+    }
+    
+    return response.data;
+  },
+
+  // PUT /api/web/user/update-user-infos
+  async updateUserInfos(data: UpdateUserInfosRequest): Promise<UpdateUserInfosResponse> {
+    const response = await axiosInstance.put('/web/user/update-user-infos', data);
+    return response.data;
+  },
+
+  // PUT /api/web/user/update-avatar
+  async updateAvatar(avatar: File): Promise<UpdateAvatarResponse> {
+    const formData = new FormData();
+    formData.append('Avatar', avatar);
+    
+    const response = await axiosInstance.put('/web/user/update-avatar', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
     });
     return response.data;
   },
