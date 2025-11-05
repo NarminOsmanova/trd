@@ -40,15 +40,6 @@ export default function UsersPage() {
 
   // Map UI filters to API filters
   const apiFilters = useMemo(() => {
-    // Map role to roleIds (only UserType enum values)
-    let roleIds: number[] | undefined = undefined;
-    if (filters.role !== 'all') {
-      if (filters.role === 'partner') {
-        roleIds = [UserType.Partner];
-      } else if (filters.role === 'user') {
-        roleIds = [UserType.User];
-      }
-    }
 
     // Map status to statuses (only UserStatus enum values)
     let statuses: number[] | undefined = undefined;
@@ -68,7 +59,6 @@ export default function UsersPage() {
       pageNumber: filters.pageNumber,
       pageSize: filters.pageSize,
       searchTerm: filters.search,
-      roleIds,
       statuses,
     };
   }, [filters]);
@@ -83,7 +73,7 @@ export default function UsersPage() {
       totalUsers: pagination?.totalCount || 0,
       activeUsers: users.filter(u => u.status === UserStatus.Active).length,
       inactiveUsers: users.filter(u => u.status !== UserStatus.Active).length,
-      adminUsers: users.filter(u => u.role === 'admin').length,
+      adminUsers: users.filter(u => (u as any).role?.name === 'Admin').length,
       regularUsers: users.filter(u => u.type === UserType.User).length,
       partnerUsers: users.filter(u => u.type === UserType.Partner).length
     };
@@ -132,11 +122,6 @@ export default function UsersPage() {
     setSelectedUserId(null);
   };
 
-  const handleRefresh = () => {
-    refetchUsers();
-    toast.success(t('dataRefreshed'));
-  };
-
   const handleClearFilters = () => {
     setFilters({
       search: '',
@@ -160,9 +145,9 @@ export default function UsersPage() {
             <h3 className="text-lg font-semibold text-gray-900">{t('filters')}</h3>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Search */}
-            <div className="relative">
+            <div className="relative md:col-span-2 lg:col-span-1">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Search className="h-5 w-5 text-gray-400" />
               </div>
@@ -174,21 +159,6 @@ export default function UsersPage() {
                 className="pl-10"
               />
             </div>
-
-            {/* Role Filter */}
-            <Select 
-              value={filters.role} 
-              onValueChange={(value) => handleFiltersChange({ role: value as UserRoleFilter })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={t('selectRole')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t('allRoles')}</SelectItem>
-                <SelectItem value="user">{t('manager')}</SelectItem>
-                <SelectItem value="partner">{t('partner')}</SelectItem>
-              </SelectContent>
-            </Select>
 
             {/* Status Filter */}
             <Select 
@@ -215,46 +185,46 @@ export default function UsersPage() {
               <Filter className="w-4 h-4 mr-2" />
               {t('clearFilters')}
             </button>
-          </div>
-        </div>
-
-        {/* Header Actions */}
-        <div className="flex flex-col gap-3 lg:flex-row lg:gap-4 lg:justify-between lg:items-center">
-          <div className="flex items-center gap-2 justify-between md:justify-end">
             {/* View Toggle */}
-            <div className="flex items-center bg-gray-100 rounded-lg p-1">
+            <div className="flex items-center bg-gray-100 rounded-lg p-1 md:col-span-2 lg:col-span-1">
               <button
                 onClick={() => setViewMode('card')}
-                className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors whitespace-nowrap ${
+                className={`flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md transition-colors whitespace-nowrap ${
                   viewMode === 'card'
                     ? 'bg-white text-blue-600 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
                 title={t('cards')}
               >
-                <Grid3X3 className="w-4 h-4 md:mr-2" />
-                <span className="hidden md:inline">{t('cards')}</span>
+                <Grid3X3 className="w-4 h-4 mr-2" />
+                <span>{t('cards')}</span>
               </button>
               <button
                 onClick={() => setViewMode('table')}
-                className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors whitespace-nowrap ${
+                className={`flex-1 flex items-center justify-center px-3 py-2 text-sm font-medium rounded-md transition-colors whitespace-nowrap ${
                   viewMode === 'table'
                     ? 'bg-white text-blue-600 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
                 title={t('table')}
               >
-                <List className="w-4 h-4 md:mr-2" />
-                <span className="hidden md:inline">{t('table')}</span>
+                <List className="w-4 h-4 mr-2" />
+                <span>{t('table')}</span>
               </button>
             </div>
           </div>
+        
+        </div>
+
+        {/* Header Actions */}
+        <div className="flex flex-col gap-3 lg:flex-row lg:gap-4 lg:justify-between lg:items-center">
+        
         </div>
 
         {/* Users View */}
         {viewMode === 'card' ? (
           <UsersCard
-            users={users}
+            users={users as any}
             pagination={pagination}
             isLoading={isLoading}
             onViewUser={handleViewUser}
@@ -263,7 +233,7 @@ export default function UsersPage() {
           />
         ) : (
           <UsersTable
-            users={users}
+            users={users as any}
             pagination={pagination}
             isLoading={isLoading}
             onViewUser={handleViewUser}

@@ -37,6 +37,27 @@ export interface CurrentUserInfoResponse {
   statusCode: number;
   message: string;
   data?: User;
+  responseValue?: {
+    id: number;
+    email: string;
+    phone: string;
+    sets?: {
+      firstName: string;
+      lastName: string;
+      language: string;
+    };
+    position?: {
+      id: number;
+      name: string;
+    };
+    role?: {
+      id: number;
+      name: string;
+    };
+    type: number;
+    status: number;
+    avatar?: string;
+  };
 }
 
 // GET /api/web/user/get-all-with-pagination
@@ -171,6 +192,33 @@ export interface LoginRequest {
 export interface LoginResponse {
   statusCode: number;
   message: string;
+  responseValue?: {
+    id: number;
+    email: string;
+    phone: string;
+    sets: {
+      firstName: string;
+      lastName: string;
+      language: string;
+    };
+    position: {
+      id: number;
+      name: string;
+    };
+    role: {
+      id: number;
+      name: string;
+    };
+    type: number;
+    status: number;
+    token: {
+      token: string;
+      expiration: string;
+      refreshToken: string;
+      refreshTokenLifeTime: number;
+    };
+  };
+  // Legacy support
   data?: {
     token: string;
     refreshToken: string;

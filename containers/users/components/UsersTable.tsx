@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { User } from '@/types';
+import type { ApiUser } from '@/containers/users/types/users-type';
 import { formatDate, getInitials } from '@/lib/utils';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -20,7 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { UserStatus, UserType } from '@/containers/users/types/users-type';
 
 interface UsersTableProps {
-  users: User[];
+  users: ApiUser[];
   pagination: any;
   isLoading?: boolean;
   onViewUser: (id: string) => void;
@@ -37,6 +38,22 @@ export default function UsersTable({
   onPageChange
 }: UsersTableProps) {
   const t = useTranslations('users');
+
+  const viewUsers = users.map((u) => {
+    const firstSet = Array.isArray(u.sets) && u.sets.length > 0 ? u.sets[0] : (u as any).set;
+    const name = `${firstSet?.firstName || ''} ${firstSet?.lastName || ''}`.trim() || u.email || 'N/A';
+    return {
+      id: u.id.toString(),
+      name,
+      email: u.email || '',
+      avatar: u.avatar,
+      status: u.status,
+      type: u.type,
+      positionName: u.position?.name || '',
+      roleName: u.role?.name || '',
+      createdAt: (u as any).createdDate || (u as any).createdAt || null,
+    };
+  });
 
   const getUserStatus = (status?: number): UserStatus => {
     // Return the numeric status directly, default to Pending if undefined
@@ -69,7 +86,7 @@ export default function UsersTable({
     );
   }
 
-  if (users.length === 0) {
+  if (viewUsers.length === 0) {
     return (
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
         <div className="text-center py-12">
@@ -104,7 +121,7 @@ export default function UsersTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users.map((user) => {
+            {viewUsers.map((user) => {
               
               return (
                 <TableRow key={user.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => onViewUser(user.id)}>
@@ -146,7 +163,7 @@ export default function UsersTable({
                 {/* Position */}
                 <TableCell>
                   <div className="flex items-center text-sm text-gray-900">
-                    {user.position || t('notAssigned')}
+                    {user.positionName || t('notAssigned')}
                   </div>
                 </TableCell>
 

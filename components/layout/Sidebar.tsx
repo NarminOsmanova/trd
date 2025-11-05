@@ -25,6 +25,20 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
 
+type AuthUserRaw = {
+  name?: string;
+  type?: number; // 1 = partner
+  role?: { name?: string } | string | null;
+};
+
+function getRoleKey(user: AuthUserRaw | null): 'admin' | 'partner' | 'user' {
+  if (!user) return 'user';
+  const roleName = typeof user.role === 'string' ? user.role : user.role?.name;
+  if (roleName === 'Admin') return 'admin';
+  if (user.type === 1) return 'partner';
+  return 'user';
+}
+
 const navigation = [
   { nameKey: 'sidebar.dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['admin', 'user'] },
   { nameKey: 'sidebar.projects', href: '/projects', icon: FolderOpen, roles: ['admin', 'user'] },
@@ -50,6 +64,8 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const { user, logout } = useAuth();
   const t = useTranslations();
   const [isMobile, setIsMobile] = useState(false);
+  const typedUser = (user as unknown) as AuthUserRaw | null;
+  const roleKey = getRoleKey(typedUser);
 
   const handleLogout = () => {
     logout();
@@ -126,8 +142,8 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                 {user?.name}
               </p>
               <p className="text-xs text-gray-500 truncate">
-                {user.role === 'admin' ? t('sidebar.admin') : 
-                 user.role === 'partner' ? 'Partnyor' : t('sidebar.manager')}
+                {roleKey === 'admin' ? t('sidebar.admin') : 
+                 roleKey === 'partner' ? 'Partnyor' : t('sidebar.manager')}
               </p>
             </div>
           </div>
@@ -137,7 +153,7 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-1">
         {navigation
-          .filter(item => item.roles.includes(user?.role || 'user'))
+          .filter(item => item.roles.includes(roleKey))
           .map((item) => {
             const isActive = pathname === item.href;
             const itemName = t(item.nameKey);

@@ -11,7 +11,6 @@ import type {
   LoginResponse,
   ChangePasswordRequest,
   ChangePasswordResponse,
-  RefreshTokenRequest,
   RefreshTokenResponse,
   UpdateUserInfosRequest,
   UpdateUserInfosResponse,
@@ -95,21 +94,51 @@ export const usersService = {
     const response = await axiosInstance.post('/web/user/login', data);
     
     // Store tokens in cookies if successful
-    if (response.data.data?.token && response.data.data?.refreshToken) {
+    // Handle both nested token structure (responseValue.token.token) and flat structure (data.token)
+    const tokenData = response.data.responseValue?.token || response.data.data?.token;
+    
+    if (tokenData) {
       const tokens: AuthTokens = {
-        accessToken: response.data.data.token,
-        refreshToken: response.data.data.refreshToken,
-        expiration: response.data.data.expiration || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        accessToken: typeof tokenData === 'string' ? tokenData : tokenData.token,
+        refreshToken: typeof tokenData === 'string' ? '' : (tokenData.refreshToken || ''),
+        expiration: typeof tokenData === 'string' ? 
+          new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() : 
+          (tokenData.expiration || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()),
+        refreshTokenLifeTime: typeof tokenData === 'string' ? undefined : tokenData.refreshTokenLifeTime,
       };
       setAuthTokens(tokens);
     }
-    
+
     return response.data;
   },
 
   // POST /api/web/user/logout
-  async logout(): Promise<ApiResponse<void>> {
-    const response = await axiosInstance.post('/web/user/logout');
+  // Swagger expects a request body: { userId: number }
+  async logout(userId: number = 0): Promise<ApiResponse<void>> {
+    // Derive userId if not provided: 1) from JWT cookie, 2) fallback 0
+    let resolvedUserId = userId;
+    if (!resolvedUserId && typeof window !== 'undefined') {
+      // Read access token from cookie
+      const match = document.cookie.match(/(?:^|; )auth-token=([^;]+)/);
+      const token = match ? decodeURIComponent(match[1]) : null;
+      if (token) {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+          const nameId =
+            payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] ||
+            payload['nameid'] ||
+            payload['sub'];
+          const parsed = typeof nameId === 'string' ? parseInt(nameId) : nameId;
+          if (!isNaN(parsed)) {
+            resolvedUserId = parsed;
+          }
+        } catch {
+          // ignore decode errors, use fallback 0
+        }
+      }
+    }
+
+    const response = await axiosInstance.post('/web/user/logout', { userId: resolvedUserId || 0 });
     
     // Remove all auth cookies
     clearAuthCookies();

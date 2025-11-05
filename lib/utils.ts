@@ -13,8 +13,10 @@ export function formatCurrency(amount: number): string {
 }
 
 // Format date
-export function formatDate(date: string | Date): string {
+export function formatDate(date: string | Date | undefined | null): string {
+  if (!date) return '-';
   const dateObj = typeof date === 'string' ? new Date(date) : date;
+  if (!(dateObj instanceof Date) || isNaN(dateObj.getTime())) return '-';
   const day = dateObj.getDate().toString().padStart(2, '0');
   const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
   const year = dateObj.getFullYear();

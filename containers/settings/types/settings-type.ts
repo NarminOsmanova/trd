@@ -5,8 +5,14 @@ export interface SettingsTab {
 }
 
 export interface ProfileFormData {
-  name: string;
-  phone?: string;
+  email: string;
+  phone: string;
+  positionId: number;
+  sets: Array<{
+    language: 'az' | 'en' | 'ru';
+    firstName: string;
+    lastName: string;
+  }>;
 }
 
 export interface PasswordFormData {

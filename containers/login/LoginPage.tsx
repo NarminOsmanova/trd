@@ -1,12 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLogin } from '@/lib/hooks/useUsers';
 import { LoginFormData, LoginState, DemoCredentials } from './types/login-type';
 import LoginHeader from './components/LoginHeader';
 import LoginForm from './components/LoginForm';
 import DemoCredentialsComponent from './components/DemoCredentials';
+import { toast } from 'sonner';
 
 export default function LoginPage() {
   const [loginState, setLoginState] = useState<LoginState>({
@@ -16,21 +18,22 @@ export default function LoginPage() {
     error: ''
   });
   
-  const { login } = useAuth();
   const router = useRouter();
+  const { refreshUserData } = useAuth();
+  const loginMutation = useLogin();
 
   const demoCredentials: DemoCredentials = {
     admin: {
-      email: 'admin@trd.az',
-      password: 'password123'
+      email: 'test@gmail.com',
+      password: 'Test123!@#'
     },
     user: {
-      email: 'memmed@trd.az',
-      password: 'password123'
+      email: 'narmin@gmail.com',
+      password: 'Test123!@#'
     },
     partner: {
-      email: 'elvin@trd.az',
-      password: 'password123'
+      email: 'partner@trd.az',
+      password: 'Test123!@#'
     },
     otp: '123456'
   };
@@ -39,33 +42,46 @@ export default function LoginPage() {
     setLoginState(prev => ({ ...prev, isLoading: true, error: '' }));
 
     try {
-      const success = await login(data.email, data.password, data.otp);
-      
-      if (success) {
+      const response = await loginMutation.mutateAsync({
+        email: data.email,
+        password: data.password
+      });
+
+      // Check if login was successful
+      // API returns: responseValue.token.token (nested structure)
+      const isSuccess = response.statusCode === 200 && 
+                       (response.responseValue?.token?.token || response.data?.token);
+
+      if (isSuccess) {
+        // Tokens are already stored by the service
+        toast.success('Giriş uğurlu oldu!');
+        
+        // Small delay to ensure cookies are set
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
+        // Refresh user data in AuthContext (will now work because token exists)
+        await refreshUserData();
+        
+        // Navigate to dashboard
         router.push('/dashboard');
       } else {
-        if (!data.otp && data.email) {
-          setLoginState(prev => ({ 
-            ...prev, 
-            showOtp: true, 
-            error: 'OTP kodunu daxil edin',
-            isLoading: false
-          }));
-        } else {
-          setLoginState(prev => ({ 
-            ...prev, 
-            error: 'Yanlış email, şifrə və ya OTP kodu',
-            showOtp: false,
-            isLoading: false
-          }));
-        }
+        throw new Error(response.message || 'Giriş uğursuz oldu');
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Login error:', error);
+      
+      // Handle different error scenarios
+      const errorMessage = error?.response?.data?.message || 
+                          error?.message || 
+                          'Giriş zamanı xəta baş verdi. Email və ya şifrə yanlışdır.';
+      
       setLoginState(prev => ({ 
         ...prev, 
-        error: 'Giriş zamanı xəta baş verdi',
+        error: errorMessage,
         isLoading: false
       }));
+      
+      toast.error(errorMessage);
     }
   };
 
@@ -94,7 +110,7 @@ export default function LoginPage() {
         <LoginForm
           showPassword={loginState.showPassword}
           showOtp={loginState.showOtp}
-          isLoading={loginState.isLoading}
+          isLoading={loginState.isLoading || loginMutation.isPending}
           error={loginState.error}
           onSubmit={handleSubmit}
           onTogglePassword={handleTogglePassword}

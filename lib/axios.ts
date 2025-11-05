@@ -19,6 +19,37 @@ export const axiosInstance = axios.create({
   },
 })
 
+// Helper function to serialize params with array support
+function serializeParams(params: Record<string, unknown>): string {
+  const parts: string[] = [];
+  
+  Object.entries(params).forEach(([key, value]) => {
+    // Skip undefined, null, and empty arrays
+    if (value === undefined || value === null) {
+      return;
+    }
+    
+    if (Array.isArray(value)) {
+      // Skip empty arrays
+      if (value.length === 0) {
+        return;
+      }
+      // Serialize arrays as key=value1&key=value2 (standard format without brackets)
+      value.forEach((item) => {
+        parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(String(item))}`);
+      });
+    } else {
+      parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`);
+    }
+  });
+  
+  const result = parts.join('&');
+  if (isDevelopment) {
+    console.log('🔗 [Axios] Serialized params:', result);
+  }
+  return result;
+}
+
 // ==================== Token Management Types ====================
 
 export interface AuthTokens {
@@ -157,7 +188,7 @@ function isTokenExpired(token: string): boolean {
 async function refreshAccessToken(): Promise<string | null> {
   devLog("Starting token refresh...");
   const refreshToken = getRefreshToken();
-  
+  console.log("refreshToken", refreshToken)
   if (!refreshToken) {
     devLog("No refresh token found");
     return null;
@@ -206,15 +237,21 @@ axiosInstance.interceptors.request.use(
     const locale = getCurrentLocaleFromCookie();
     let token = getAuthToken();
     
-    // Check if token exists and is expired
-    if (token && isTokenExpired(token)) {
-      devLog("Token expired, attempting proactive refresh...");
-      const newToken = await refreshAccessToken();
-      token = newToken;
-    } else if (!token) {
-      devLog("No token found, attempting to get one...");
-      const newToken = await refreshAccessToken();
-      token = newToken;
+    // Skip token refresh for login/register endpoints
+    const isAuthEndpoint = config.url?.includes('/login') || 
+                          config.url?.includes('/register') ||
+                          config.url?.includes('/complete-registration');
+    
+    if (!isAuthEndpoint) {
+      // Check if token exists and is expired
+      if (token && isTokenExpired(token)) {
+        devLog("Token expired, attempting proactive refresh...");
+        const newToken = await refreshAccessToken();
+        token = newToken;
+      } else if (!token) {
+        // Don't try to refresh if there's no token at all
+        devLog("No token found, skipping auth...");
+      }
     }
     
     if (token) {
@@ -223,6 +260,14 @@ axiosInstance.interceptors.request.use(
     
     // Add Accept-Language header
     config.headers["Accept-Language"] = locale;
+    
+    // Serialize params with array support for GET requests
+    if (config.params && Object.keys(config.params).length > 0) {
+      const serialized = serializeParams(config.params as Record<string, unknown>);
+      // Replace params with serialized string
+      config.params = {};
+      config.url = `${config.url}${config.url?.includes('?') ? '&' : '?'}${serialized}`;
+    }
     
     return config;
   },

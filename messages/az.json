@@ -544,7 +544,8 @@
     "total": "Ümumi",
     "statusChanged": "İstifadəçi statusu {status} olaraq dəyişdirildi",
     "statusChangeError": "Status dəyişdirilərkən xəta baş verdi",
-    "dataRefreshed": "Məlumatlar yeniləndi"
+    "dataRefreshed": "Məlumatlar yeniləndi",
+    "type": "Tip"
   },
   "AlertDialog": {
     "cancel": "Ləğv et",

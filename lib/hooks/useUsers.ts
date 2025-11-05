@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { usersService } from '@/lib/services/usersService';
-import type { User } from '@/types';
 import type {
   CurrentUserInfoResponse,
   PaginatedUsersResponse,
@@ -49,38 +48,11 @@ export const useUsers = (filters: UserFilters = {}) => {
     },
   });
 
-  // Transform API users to app users
-  const transformApiUser = (apiUser: ApiUser): User => {
-    // Try to get name from sets array first (new API), fallback to set object (old API)
-    let name = 'N/A';
-    if (apiUser.sets && apiUser.sets.length > 0) {
-      const firstSet = apiUser.sets[0];
-      name = `${firstSet.firstName || ''} ${firstSet.lastName || ''}`.trim();
-    } else if (apiUser.set) {
-      name = `${apiUser.set.firstName || ''} ${apiUser.set.lastName || ''}`.trim();
-    }
-
-    return {
-      id: apiUser.id.toString(),
-      name,
-      email: apiUser.email || '',
-      phone: apiUser.phone || '',
-      position: apiUser.position?.name || '',
-      // Prioritize role.name over type for role mapping
-      role: apiUser.role?.name === 'Admin' ? 'admin' : (apiUser.type === 1 ? 'partner' : 'user'),
-      type: apiUser.type,
-      status: apiUser.status,
-      isActive: apiUser.status === 1,
-      avatar: apiUser.avatar,
-      createdAt: apiUser.createdDate || apiUser.createdAt || new Date().toISOString(),
-      updatedAt: apiUser.createdDate || apiUser.createdAt || new Date().toISOString(),
-    };
-  };
-
-  const transformedUsers = data?.responseValue?.items?.map(transformApiUser) || [];
+  // Use raw backend user objects directly
+  const rawUsers: ApiUser[] = (data?.responseValue?.items as ApiUser[]) || [];
 
   return {
-    users: transformedUsers,
+    users: rawUsers,
     pagination: data?.responseValue
       ? {
           pageNumber: data.responseValue.pageNumber,
@@ -107,38 +79,11 @@ export const useAllUsers = (searchTerm: string = "") => {
     retry: false,
   });
 
-  // Transform API users to app users
-  const transformApiUser = (apiUser: ApiUser): User => {
-    // Try to get name from sets array first (new API), fallback to set object (old API)
-    let name = 'N/A';
-    if (apiUser.sets && apiUser.sets.length > 0) {
-      const firstSet = apiUser.sets[0];
-      name = `${firstSet.firstName || ''} ${firstSet.lastName || ''}`.trim();
-    } else if (apiUser.set) {
-      name = `${apiUser.set.firstName || ''} ${apiUser.set.lastName || ''}`.trim();
-    }
-
-    return {
-      id: apiUser.id.toString(),
-      name,
-      email: apiUser.email || '',
-      phone: apiUser.phone || '',
-      position: apiUser.position?.name || '',
-      // Prioritize role.name over type for role mapping
-      role: apiUser.role?.name === 'Admin' ? 'admin' : (apiUser.type === 1 ? 'partner' : 'user'),
-      type: apiUser.type,
-      status: apiUser.status,
-      isActive: apiUser.status === 1,
-      avatar: apiUser.avatar,
-      createdAt: apiUser.createdDate || apiUser.createdAt || new Date().toISOString(),
-      updatedAt: apiUser.createdDate || apiUser.createdAt || new Date().toISOString(),
-    };
-  };
-
-  const transformedUsers = data?.responseValue?.map(transformApiUser) || [];
+  // Use raw backend users directly
+  const users: ApiUser[] = (data?.responseValue as ApiUser[]) || [];
 
   return {
-    users: transformedUsers,
+    users,
     isLoading,
     error,
     refetchUsers: refetch,
@@ -215,7 +160,20 @@ export const useLogout = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => usersService.logout(),
+    // Optional userId; if not provided, derive from cached current-user or localStorage
+    mutationFn: (userId?: number) => {
+      if (typeof userId === 'number') {
+        return usersService.logout(userId);
+      }
+      const cached = queryClient.getQueryData(['current-user']) as CurrentUserInfoResponse | undefined;
+      const derivedId = (cached?.responseValue?.id as number | undefined) ?? (cached?.data?.id as string | undefined);
+      let idNumber = typeof derivedId === 'string' ? parseInt(derivedId) : (derivedId ?? 0);
+      if (!idNumber && typeof window !== 'undefined') {
+        const stored = localStorage.getItem('trd_user_id');
+        if (stored) idNumber = parseInt(stored) || 0;
+      }
+      return usersService.logout(idNumber || 0);
+    },
     onSuccess: () => {
       queryClient.clear();
     },

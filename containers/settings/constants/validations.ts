@@ -1,18 +1,31 @@
 import { z } from 'zod';
 
 export const profileFormSchema = z.object({
-  name: z
+  email: z
     .string()
-    .min(1, 'Ad tələb olunur')
-    .min(2, 'Ad ən azı 2 simvol olmalıdır')
-    .max(50, 'Ad 50 simvoldan çox ola bilməz'),
+    .email('Düzgün email formatı daxil edin'),
   phone: z
     .string()
-    .optional()
+    .min(1, 'Telefon nömrəsi tələb olunur')
     .refine((val) => {
-      if (!val) return true;
-      return /^(\+994|0)?(50|51|55|70|77|99)[0-9]{7}$/.test(val);
-    }, 'Düzgün telefon nömrəsi formatı daxil edin')
+      return /^(\+?994|0)?(50|51|55|70|77|99)[0-9]{7}$/.test(val);
+    }, 'Düzgün telefon nömrəsi formatı daxil edin'),
+  positionId: z
+    .number()
+    .min(1, 'Vəzifə seçilməlidir'),
+  sets: z.array(z.object({
+    language: z.enum(['az', 'en', 'ru']),
+    firstName: z
+      .string()
+      .min(1, 'Ad tələb olunur')
+      .min(2, 'Ad ən azı 2 simvol olmalıdır')
+      .max(50, 'Ad 50 simvoldan çox ola bilməz'),
+    lastName: z
+      .string()
+      .min(1, 'Soyad tələb olunur')
+      .min(2, 'Soyad ən azı 2 simvol olmalıdır')
+      .max(50, 'Soyad 50 simvoldan çox ola bilməz'),
+  })).min(1, 'Ən azı bir dil üçün məlumat tələb olunur')
 });
 
 export const passwordFormSchema = z.object({

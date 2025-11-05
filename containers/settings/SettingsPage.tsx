@@ -9,6 +9,9 @@ import {
   Database,
   RefreshCw
 } from 'lucide-react';
+import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
+import { useUpdateUserInfos, useCurrentUser } from '@/lib/hooks/useUsers';
 import { ProfileFormData, PasswordFormData, NotificationSettings, UserPreferences, SystemInfo, SupportInfo } from './types/settings-type';
 import SettingsSidebar from './components/SettingsSidebar';
 import ProfileTab from './components/ProfileTab';
@@ -23,7 +26,12 @@ interface SettingsPageProps {
 }
 
 export default function SettingsPage({ activeTab }: SettingsPageProps) {
+  const { refreshUserData } = useAuth();
+  const { data: currentUserData } = useCurrentUser();
+  const updateUserInfosMutation = useUpdateUserInfos();
 
+  const apiUser = currentUserData;
+  const apiUserRaw = currentUserData?.responseValue;
   // Mock system info
   const systemInfo: SystemInfo = {
     version: 'v1.0.0',
@@ -43,13 +51,24 @@ export default function SettingsPage({ activeTab }: SettingsPageProps) {
 
   const handleProfileUpdate = async (data: ProfileFormData) => {
     try {
-      console.log('Profile update:', data);
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      alert('Profil uğurla yeniləndi');
-    } catch (error) {
+      if (!apiUserRaw) {
+        toast.error('İstifadəçi məlumatları tapılmadı');
+        return;
+      }
+      await updateUserInfosMutation.mutateAsync({
+        id: Number(apiUserRaw.id),
+        email: data.email,
+        phone: data.phone,
+        roleId: apiUserRaw?.role?.id || 0,
+        positionId: data.positionId,
+        sets: data.sets
+      });
+      toast.success('Profil uğurla yeniləndi');
+      await refreshUserData();
+    } catch (error: any) {
       console.error('Profile update error:', error);
-      alert('Profil yenilənərkən xəta baş verdi');
+      const errorMessage = error?.response?.data?.message || 'Profil yenilənərkən xəta baş verdi';
+      toast.error(errorMessage);
     }
   };
 

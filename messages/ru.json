@@ -543,7 +543,8 @@
     "total": "Всего",
     "statusChanged": "Статус пользователя изменен на {status}",
     "statusChangeError": "Ошибка при изменении статуса",
-    "dataRefreshed": "Данные обновлены"
+    "dataRefreshed": "Данные обновлены",
+    "type": "Тип"
   },
   "AlertDialog": {
     "cancel": "Отмена",

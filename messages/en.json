@@ -542,7 +542,8 @@
     "total": "Total",
     "statusChanged": "User status changed to {status}",
     "statusChangeError": "Error occurred while changing status",
-    "dataRefreshed": "Data refreshed"
+    "dataRefreshed": "Data refreshed",
+    "type": "Type"
   },
   "AlertDialog": {
     "cancel": "Cancel",

@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { User } from '@/types';
+import type { ApiUser } from '@/containers/users/types/users-type';
 import { formatDate, getInitials } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -21,7 +22,7 @@ import { Button } from '@/components/ui/button';
 import { UserStatus, UserType } from '@/containers/users/types/users-type';
 
 interface UsersCardProps {
-  users: User[];
+  users: ApiUser[];
   pagination: any;
   isLoading?: boolean;
   onViewUser: (id: string) => void;
@@ -38,6 +39,22 @@ export default function UsersCard({
   onPageChange
 }: UsersCardProps) {
   const t = useTranslations('users');
+
+  const viewUsers = users.map((u) => {
+    const firstSet = Array.isArray(u.sets) && u.sets.length > 0 ? u.sets[0] : (u as any).set;
+    const name = `${firstSet?.firstName || ''} ${firstSet?.lastName || ''}`.trim() || u.email || 'N/A';
+    return {
+      id: u.id.toString(),
+      name,
+      email: u.email || '',
+      avatar: u.avatar,
+      status: u.status,
+      type: u.type,
+      positionName: u.position?.name || '',
+      roleName: u.role?.name || '',
+      createdAt: (u as any).createdDate || (u as any).createdAt || null,
+    };
+  });
 
   const getUserStatus = (status?: number): UserStatus => {
     // Return the numeric status directly, default to Pending if undefined
@@ -70,7 +87,7 @@ export default function UsersCard({
     );
   }
 
-  if (users.length === 0) {
+  if (viewUsers.length === 0) {
     return (
       <div className="bg-white rounded-xl shadow-sm border border-gray-200">
         <div className="text-center py-12">
@@ -93,7 +110,7 @@ export default function UsersCard({
 
       {/* Users Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {users.map((user) => {
+        {viewUsers.map((user) => {
           
           return (
             <div 
@@ -166,7 +183,7 @@ export default function UsersCard({
                   </div>
                   <div className="flex items-center text-sm text-gray-600">
                     <span className="inline-flex items-center px-2 py-1 rounded-md bg-gray-100 text-gray-700">
-                      {user.position || t('notAssigned')}
+                      {user.positionName || t('notAssigned')}
                     </span>
                   </div>
                 </div>

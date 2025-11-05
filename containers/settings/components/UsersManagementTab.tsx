@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { User } from '@/types';
+import type { ApiUser } from '@/containers/users/types/users-type';
 import { formatDate } from '@/lib/utils';
 import { useUsers, useChangeUserStatus, useGenerateRegistrationLink } from '@/lib/hooks/useUsers';
 import { UserStatus, UserType } from '@/containers/users/types/users-type';
@@ -30,6 +31,22 @@ export default function UsersManagementTab({ onCreateOrUpdate }: UsersManagement
   const { users, isLoading, refetchUsers } = useUsers({
     pageNumber: 1,
     pageSize: 100, // Get all users for settings
+  });
+
+  // Derive display-friendly users from raw ApiUser
+  const viewUsers = (users as unknown as ApiUser[]).map((u) => {
+    const firstSet = Array.isArray(u.sets) && u.sets.length > 0 ? u.sets[0] : (u as any).set;
+    const name = `${firstSet?.firstName || ''} ${firstSet?.lastName || ''}`.trim() || u.email || 'N/A';
+    const roleKey = u.role?.name === 'Admin' ? 'admin' : (u.type === 1 ? 'partner' : 'user');
+    return {
+      id: u.id.toString(),
+      name,
+      email: u.email || '',
+      positionName: u.position?.name || '-',
+      roleKey,
+      isActive: u.status === 1,
+      createdAt: (u as any).createdDate || (u as any).createdAt || null,
+    };
   });
 
   // Change user status mutation
@@ -184,21 +201,21 @@ export default function UsersManagementTab({ onCreateOrUpdate }: UsersManagement
               </tr>
             </thead>
             <tbody>
-              {users.length === 0 ? (
+              {viewUsers.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-8 text-center text-gray-500">
                     {t('noUsers')}
                   </td>
                 </tr>
               ) : (
-                users.map(u => (
+                viewUsers.map(u => (
                   <tr key={u.id} className="border-t hover:bg-gray-50 transition-colors">
                     <td className="py-3 px-4 font-medium text-gray-900">{u.name}</td>
                     <td className="py-3 px-4 text-gray-600">{u.email}</td>
-                    <td className="py-3 px-4 text-gray-600">{u.position || '-'}</td>
+                    <td className="py-3 px-4 text-gray-600">{u.positionName}</td>
                     <td className="py-3 px-4">
-                      <Badge variant={u.role === 'admin' ? 'secondary' : 'default'}>
-                        {u.role === 'admin' ? t('admin') : u.role === 'partner' ? t('partner') : t('employee')}
+                      <Badge variant={u.roleKey === 'admin' ? 'secondary' : 'default'}>
+                        {u.roleKey === 'admin' ? t('admin') : u.roleKey === 'partner' ? t('partner') : t('employee')}
                       </Badge>
                     </td>
                     <td className="py-3 px-4">
