@@ -38,7 +38,7 @@ interface UserViewModalProps {
 }
 
 export default function UserViewModal({ userId, isOpen, onClose }: UserViewModalProps) {
-  const t = useTranslations('settings.users');
+  const t = useTranslations('settings.userModal');
   const locale = useLocale();
   const { data, isLoading } = useUser(userId, isOpen);
 
@@ -73,10 +73,10 @@ export default function UserViewModal({ userId, isOpen, onClose }: UserViewModal
 
   const getOperationTypeLabel = (type: number) => {
     const types: { [key: number]: string } = {
-      0: 'Mədaxil',
-      1: 'Məxaric',
-      2: 'Transfer',
-      3: 'Hesab artımı'
+      0: t('income'),
+      1: t('expense'),
+      2: t('transfer'),
+      3: t('accountIncrease')
     };
     return types[type] || 'Naməlum';
   };
@@ -90,10 +90,10 @@ export default function UserViewModal({ userId, isOpen, onClose }: UserViewModal
 
   const getProjectStatusLabel = (status: number) => {
     const statuses: { [key: number]: string } = {
-      0: 'Planlaşdırılır',
-      1: 'Aktiv',
-      2: 'Tamamlandı',
-      3: 'Dayandırıldı'
+      0: t('projectPlanned'),
+      1: t('projectActive'),
+      2: t('projectCompleted'),
+      3: t('projectPaused')
     };
     return statuses[status] || 'Naməlum';
   };
@@ -185,7 +185,7 @@ export default function UserViewModal({ userId, isOpen, onClose }: UserViewModal
                   <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
                     <DollarSign className="w-4 h-4 text-white" />
                   </div>
-                  <p className="text-xs text-green-700 font-medium">Ümumi Büdcə</p>
+                  <p className="text-xs text-green-700 font-medium">{t('totalBudget')}</p>
                 </div>
                 <p className="text-lg font-bold text-green-900">
                   {formatCurrency(user.statistics.totalBudget, user.statistics.currency)}
@@ -197,7 +197,7 @@ export default function UserViewModal({ userId, isOpen, onClose }: UserViewModal
                   <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
                     <Activity className="w-4 h-4 text-white" />
                   </div>
-                  <p className="text-xs text-blue-700 font-medium">Əməliyyatlar</p>
+                  <p className="text-xs text-blue-700 font-medium">{t('operations')}</p>
                 </div>
                 <p className="text-lg font-bold text-blue-900">
                   {user.statistics.totalOperations}
@@ -209,7 +209,7 @@ export default function UserViewModal({ userId, isOpen, onClose }: UserViewModal
                   <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
                     <TrendingUp className="w-4 h-4 text-white" />
                   </div>
-                  <p className="text-xs text-purple-700 font-medium">Orta Məbləğ</p>
+                  <p className="text-xs text-purple-700 font-medium">{t('avgAmount')}</p>
                 </div>
                 <p className="text-lg font-bold text-purple-900">
                   {formatCurrency(user.statistics.averageAmountPerOperation, user.statistics.currency)}
@@ -221,7 +221,7 @@ export default function UserViewModal({ userId, isOpen, onClose }: UserViewModal
                   <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
                     <BriefcaseIcon className="w-4 h-4 text-white" />
                   </div>
-                  <p className="text-xs text-orange-700 font-medium">Aktiv Layihələr</p>
+                  <p className="text-xs text-orange-700 font-medium">{t('activeProjects')}</p>
                 </div>
                 <p className="text-lg font-bold text-orange-900">
                   {user.statistics.activeProjectsCount}
@@ -306,7 +306,7 @@ export default function UserViewModal({ userId, isOpen, onClose }: UserViewModal
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <Building2 className="w-5 h-5 mr-2 text-purple-600" />
-                Layihələr ({user.projects.length})
+                {t('projects')} ({user.projects.length})
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {user.projects.map((project) => (
@@ -343,17 +343,17 @@ export default function UserViewModal({ userId, isOpen, onClose }: UserViewModal
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <FileText className="w-5 h-5 mr-2 text-blue-600" />
-                Son Əməliyyatlar ({user.recentOperations.length})
+                {t('recentOperations')} ({user.recentOperations.length})
               </h3>
               
               <div className="space-y-2 max-h-96 overflow-y-auto">
                 {/* Header Row */}
                 <div className="grid grid-cols-5 items-center text-xs text-gray-500 px-1 pb-2 border-b border-gray-200">
-                  <div>Tarix</div>
-                  <div>Tip</div>
-                  <div>Layihə</div>
-                  <div>Təsvir</div>
-                  <div className="text-right">Məbləğ</div>
+                  <div>{t('date')}</div>
+                  <div>{t('type')}</div>
+                  <div>{t('project')}</div>
+                  <div>{t('description')}</div>
+                  <div className="text-right">{t('amount')}</div>
                 </div>
                 
                 {/* Operations List */}
@@ -406,7 +406,7 @@ export default function UserViewModal({ userId, isOpen, onClose }: UserViewModal
             <div className="border-t pt-4">
               <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
                 <User className="w-4 h-4 mr-2" />
-                Dil Versiyaları
+                {t('languageVersions')}
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 {user.sets.map((set, index) => (
@@ -423,7 +423,7 @@ export default function UserViewModal({ userId, isOpen, onClose }: UserViewModal
                         {set.language.toUpperCase()}
                       </Badge>
                       {set.language === locale && (
-                        <span className="text-xs text-blue-600 font-medium">Aktiv</span>
+                        <span className="text-xs text-blue-600 font-medium">{t('activeLabel')}</span>
                       )}
                     </div>
                     <p className="text-sm font-medium text-gray-900">

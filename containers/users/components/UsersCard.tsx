@@ -203,40 +203,21 @@ export default function UsersCard({
 
                 {/* Status and Date */}
                 <div className="flex items-center justify-between gap-2">
-                  <div onClick={(e) => e.stopPropagation()} className="flex-1">
-                    <Select 
-                      value={getUserStatus(user.status).toString()}
-                      onValueChange={(value) => onChangeStatus(user.id, parseInt(value) as UserStatus)}
-                    >
-                      <SelectTrigger className="w-full">
-                        <div className="flex items-center">
-                          {getUserStatus(user.status) === UserStatus.Active ? (
-                            <UserCheck className="w-4 h-4 mr-2 text-green-600" />
-                          ) : getUserStatus(user.status) === UserStatus.Pending ? (
-                            <Clock className="w-4 h-4 mr-2 text-gray-600" />
-                          ) : getUserStatus(user.status) === UserStatus.Blocked ? (
-                            <Ban className="w-4 h-4 mr-2 text-red-600" />
-                          ) : (
-                            <UserX className="w-4 h-4 mr-2 text-red-500" />
-                          )}
-                          <SelectValue />
-                        </div>
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={UserStatus.Active.toString()}>
-                          {getStatusLabel(UserStatus.Active)}
-                        </SelectItem>
-                        <SelectItem value={UserStatus.Inactive.toString()}>
-                          {getStatusLabel(UserStatus.Inactive)}
-                        </SelectItem>
-                        <SelectItem value={UserStatus.Blocked.toString()}>
-                          {getStatusLabel(UserStatus.Blocked)}
-                        </SelectItem>
-                        <SelectItem value={UserStatus.Pending.toString()}>
-                          {getStatusLabel(UserStatus.Pending)}
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="flex-1">
+                    <div className="flex items-center">
+                      {getUserStatus(user.status) === UserStatus.Active ? (
+                        <UserCheck className="w-4 h-4 mr-2 text-green-600" />
+                      ) : getUserStatus(user.status) === UserStatus.Pending ? (
+                        <Clock className="w-4 h-4 mr-2 text-gray-600" />
+                      ) : getUserStatus(user.status) === UserStatus.Blocked ? (
+                        <Ban className="w-4 h-4 mr-2 text-red-600" />
+                      ) : (
+                        <UserX className="w-4 h-4 mr-2 text-red-500" />
+                      )}
+                      <Badge variant={getUserStatus(user.status) === UserStatus.Active ? 'success' : getUserStatus(user.status) === UserStatus.Blocked ? 'destructive' : 'secondary'}>
+                        {getStatusLabel(getUserStatus(user.status))}
+                      </Badge>
+                    </div>
                   </div>
                   <div className="flex items-center text-xs text-gray-500 whitespace-nowrap">
                     <Calendar className="w-3 h-3 mr-1" />

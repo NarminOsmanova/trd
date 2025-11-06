@@ -10,6 +10,7 @@ import {
   Database
 } from 'lucide-react';
 import { SettingsTab } from '../types/settings-type';
+import { useTranslations } from 'next-intl';
 
 interface SettingsSidebarProps {
   activeTab: string;
@@ -18,14 +19,15 @@ interface SettingsSidebarProps {
 export default function SettingsSidebar({
   activeTab
 }: SettingsSidebarProps) {
+  const t = useTranslations('settings.sidebar');
   
   const tabs: SettingsTab[] = [
-    { id: 'profile', label: 'Profil', icon: 'User' },
-    { id: 'security', label: 'Təhlükəsizlik', icon: 'Shield' },
-    { id: 'notifications', label: 'Bildirişlər', icon: 'Bell' },
-    { id: 'preferences', label: 'Tənzimləmələr', icon: 'Globe' },
-    { id: 'users', label: 'İstifadəçilər', icon: 'User' },
-    { id: 'system', label: 'Sistem', icon: 'Database' }
+    { id: 'profile', label: t('profile'), icon: 'User' },
+    { id: 'security', label: t('security'), icon: 'Shield' },
+    { id: 'notifications', label: t('notifications'), icon: 'Bell' },
+    { id: 'preferences', label: t('preferences'), icon: 'Globe' },
+    { id: 'users', label: t('users'), icon: 'User' },
+    { id: 'system', label: t('system'), icon: 'Database' }
   ];
 
   const getIcon = (iconName: string) => {

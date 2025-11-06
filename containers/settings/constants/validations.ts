@@ -35,13 +35,13 @@ export const passwordFormSchema = z.object({
   newPassword: z
     .string()
     .min(8, 'Şifrə ən azı 8 simvol olmalıdır')
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, 
-      'Şifrə ən azı bir böyük hərf, bir kiçik hərf, bir rəqəm və bir xüsusi simvol olmalıdır'),
+    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&._])[A-Za-z\d@$!%*?&._]/, 
+      'Şifrə ən azı bir böyük hərf, bir kiçik hərf, bir rəqəm və bir xüsusi simvol (._@$!%*?&) olmalıdır'),
   confirmPassword: z
     .string()
     .min(1, 'Şifrə təsdiqi tələb olunur')
 }).refine((data) => data.newPassword === data.confirmPassword, {
-  message: "Şifrələr uyğun gəlmir",
+  message: "Yeni şifrə və təsdiq şifrəsi eyni olmalıdır",
   path: ["confirmPassword"],
 });
 

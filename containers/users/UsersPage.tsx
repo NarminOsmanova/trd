@@ -10,7 +10,9 @@ import {
   Filter,
   Grid3X3,
   List,
-  Search
+  Search,
+  Ban,
+  Clock
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -72,10 +74,9 @@ export default function UsersPage() {
     return {
       totalUsers: pagination?.totalCount || 0,
       activeUsers: users.filter(u => u.status === UserStatus.Active).length,
-      inactiveUsers: users.filter(u => u.status !== UserStatus.Active).length,
-      adminUsers: users.filter(u => (u as any).role?.name === 'Admin').length,
-      regularUsers: users.filter(u => u.type === UserType.User).length,
-      partnerUsers: users.filter(u => u.type === UserType.Partner).length
+      inactiveUsers: users.filter(u => u.status === UserStatus.Inactive).length,
+      blockedUsers: users.filter(u => u.status === UserStatus.Blocked).length,
+      pendingUsers: users.filter(u => u.status === UserStatus.Pending).length,
     };
   }, [users, pagination]);
 
@@ -242,104 +243,8 @@ export default function UsersPage() {
           />
         )}
 
-        {/* Summary Statistics */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 md:p-4">
-            <div className="flex items-center">
-              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-2 md:mr-3">
-                <Shield className="w-4 h-4 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-xs md:text-sm text-gray-600">{t('totalUsers')}</p>
-                <p className="text-base md:text-lg font-semibold text-gray-900">{userStats.totalUsers}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 md:p-4">
-            <div className="flex items-center">
-              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-2 md:mr-3">
-                <Shield className="w-4 h-4 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-xs md:text-sm text-gray-600">{t('admins')}</p>
-                <p className="text-base md:text-lg font-semibold text-gray-900">{userStats.adminUsers}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 md:p-4">
-            <div className="flex items-center">
-              <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-2 md:mr-3">
-                <UserCheck className="w-4 h-4 text-green-600" />
-              </div>
-              <div>
-                <p className="text-xs md:text-sm text-gray-600">{t('activeUsers')}</p>
-                <p className="text-base md:text-lg font-semibold text-gray-900">{userStats.activeUsers}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 md:p-4">
-            <div className="flex items-center">
-              <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center mr-2 md:mr-3">
-                <ShieldCheck className="w-4 h-4 text-orange-600" />
-              </div>
-              <div>
-                <p className="text-xs md:text-sm text-gray-600">{t('managers')}</p>
-                <p className="text-base md:text-lg font-semibold text-gray-900">{userStats.regularUsers}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 md:p-4">
-            <div className="flex items-center">
-              <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center mr-2 md:mr-3">
-                <ShieldCheck className="w-4 h-4 text-indigo-600" />
-              </div>
-              <div>
-                <p className="text-xs md:text-sm text-gray-600">{t('partners')}</p>
-                <p className="text-base md:text-lg font-semibold text-gray-900">{userStats.partnerUsers}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Additional Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
-            <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">{t('roleDistribution')}</h3>
-            <div className="space-y-2 md:space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <Shield className="w-4 h-4 md:w-5 md:h-5 text-purple-600 mr-2" />
-                  <span className="text-xs md:text-sm font-medium text-gray-700">{t('admins')}</span>
-                </div>
-                <span className="text-xs md:text-sm font-semibold text-gray-900">
-                  {userStats.adminUsers} ({calculatePercentage(userStats.adminUsers, userStats.totalUsers)}%)
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <ShieldCheck className="w-4 h-4 md:w-5 md:h-5 text-blue-600 mr-2" />
-                  <span className="text-xs md:text-sm font-medium text-gray-700">{t('managers')}</span>
-                </div>
-                <span className="text-xs md:text-sm font-semibold text-gray-900">
-                  {userStats.regularUsers} ({calculatePercentage(userStats.regularUsers, userStats.totalUsers)}%)
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <ShieldCheck className="w-4 h-4 md:w-5 md:h-5 text-indigo-600 mr-2" />
-                  <span className="text-xs md:text-sm font-medium text-gray-700">{t('partners')}</span>
-                </div>
-                <span className="text-xs md:text-sm font-semibold text-gray-900">
-                  {userStats.partnerUsers} ({calculatePercentage(userStats.partnerUsers, userStats.totalUsers)}%)
-                </span>
-              </div>
-            </div>
-          </div>
-
+        <div className="grid grid-cols-1  gap-4 md:gap-6">
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 md:p-6">
             <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">{t('statusDistribution')}</h3>
             <div className="space-y-2 md:space-y-3">
@@ -359,6 +264,24 @@ export default function UsersPage() {
                 </div>
                 <span className="text-xs md:text-sm font-semibold text-gray-900">
                   {userStats.inactiveUsers} ({calculatePercentage(userStats.inactiveUsers, userStats.totalUsers)}%)
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <Ban className="w-4 h-4 md:w-5 md:h-5 text-gray-600 mr-2" />
+                  <span className="text-xs md:text-sm font-medium text-gray-700">{t('blocked')}</span>
+                </div>
+                <span className="text-xs md:text-sm font-semibold text-gray-900">
+                  {userStats.blockedUsers} ({calculatePercentage(userStats.blockedUsers, userStats.totalUsers)}%)
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <Clock className="w-4 h-4 md:w-5 md:h-5 text-yellow-600 mr-2" />
+                  <span className="text-xs md:text-sm font-medium text-gray-700">{t('pending')}</span>
+                </div>
+                <span className="text-xs md:text-sm font-semibold text-gray-900">
+                  {userStats.pendingUsers} ({calculatePercentage(userStats.pendingUsers, userStats.totalUsers)}%)
                 </span>
               </div>
             </div>

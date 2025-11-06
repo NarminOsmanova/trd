@@ -13,13 +13,15 @@ import {
   Shield
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useCurrentUser } from '@/lib/hooks/useUsers';
+import { useCurrentUser, useUpdateAvatar } from '@/lib/hooks/useUsers';
 import { useAllPositions } from '@/lib/hooks/usePosition';
 import { profileFormSchema, type ProfileFormData } from '../constants/validations';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from 'sonner';
+import { useTranslations } from 'next-intl';
 
 interface ProfileTabProps {
   onSubmit: (data: ProfileFormData) => void;
@@ -28,9 +30,11 @@ interface ProfileTabProps {
 type LanguageTab = 'az' | 'en' | 'ru';
 
 export default function ProfileTab({ onSubmit }: ProfileTabProps) {
+  const t = useTranslations('settings.profile');
   const { user } = useAuth();
   const { data: currentUserData } = useCurrentUser();
   const { data: positionsData } = useAllPositions();
+  const updateAvatarMutation = useUpdateAvatar();
   const [avatar, setAvatar] = useState<File | null>(null);
   const [activeLanguage, setActiveLanguage] = useState<LanguageTab>('az');
   
@@ -71,7 +75,9 @@ console.log("positionsData", positionsData);
     if (apiUserRaw) {
       setValue('email', apiUserRaw.email || '');
       setValue('phone', apiUserRaw.phone || '');
-      setValue('positionId', apiUserRaw.position?.id || 0);
+      if (apiUserRaw.position?.id) {
+        setValue('positionId', apiUserRaw.position.id);
+      }
       const languages: LanguageTab[] = ['az', 'en', 'ru'];
       languages.forEach((lang, idx) => {
         const langSet = Array.isArray(apiUserRaw.sets)
@@ -87,24 +93,37 @@ console.log("positionsData", positionsData);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setAvatar(e.target.files[0]);
-      // TODO: Upload avatar
+      const file = e.target.files[0];
+      setAvatar(file);
+      
+      // Upload avatar immediately
+      updateAvatarMutation.mutate(file, {
+        onSuccess: () => {
+          toast.success('Avatar uğurla yeniləndi');
+        },
+        onError: (error: any) => {
+          console.error('Avatar upload error:', error);
+          const errorMessage = error?.response?.data?.message || 'Avatar yüklənərkən xəta baş verdi';
+          toast.error(errorMessage);
+          setAvatar(null);
+        },
+      });
     }
   };
 
   const activeLanguageIndex = fields.findIndex(f => f.language === activeLanguage);
   
   const languageLabels = {
-    az: { label: 'Azərbaycan', flag: '🇦🇿' },
-    en: { label: 'English', flag: '🇬🇧' },
-    ru: { label: 'Русский', flag: '🇷🇺' }
+    az: { label: t('lang.az'), flag: '🇦🇿' },
+    en: { label: t('lang.en'), flag: '🇬🇧' },
+    ru: { label: t('lang.ru'), flag: '🇷🇺' }
   };
 console.log("apiUser", apiUserRaw);
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200">
       <div className="p-6 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900">Profil Məlumatları</h3>
-        <p className="text-sm text-gray-600 mt-1">Şəxsi məlumatlarınızı yeniləyin</p>
+        <h3 className="text-lg font-semibold text-gray-900">{t('title')}</h3>
+        <p className="text-sm text-gray-600 mt-1">{t('subtitle')}</p>
       </div>
       
       <div className="p-6">
@@ -165,7 +184,7 @@ console.log("apiUser", apiUserRaw);
           <div>
             <Label className="mb-3 flex items-center gap-2">
               <User className="h-4 w-4" />
-              Name *
+              {t('name')}
             </Label>
             <div className="flex gap-2 mb-4">
               {(['az', 'en', 'ru'] as LanguageTab[]).map((lang) => (
@@ -190,7 +209,7 @@ console.log("apiUser", apiUserRaw);
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor={`firstName-${activeLanguage}`}>Ad *</Label>
+                    <Label htmlFor={`firstName-${activeLanguage}`}>{t('firstName')}</Label>
                     <Input
                       {...register(`sets.${activeLanguageIndex}.firstName`)}
                       id={`firstName-${activeLanguage}`}
@@ -204,7 +223,7 @@ console.log("apiUser", apiUserRaw);
                     )}
                   </div>
                   <div>
-                    <Label htmlFor={`lastName-${activeLanguage}`}>Soyad *</Label>
+                    <Label htmlFor={`lastName-${activeLanguage}`}>{t('lastName')}</Label>
                     <Input
                       {...register(`sets.${activeLanguageIndex}.lastName`)}
                       id={`lastName-${activeLanguage}`}
@@ -225,7 +244,7 @@ console.log("apiUser", apiUserRaw);
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Email */}
             <div>
-              <Label htmlFor="email">Email *</Label>
+              <Label htmlFor="email">{t('email')}</Label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Mail className="h-5 w-5 text-gray-400" />
@@ -245,7 +264,7 @@ console.log("apiUser", apiUserRaw);
 
             {/* Phone */}
             <div>
-              <Label htmlFor="phone">Telefon *</Label>
+              <Label htmlFor="phone">{t('phone')}</Label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Phone className="h-5 w-5 text-gray-400" />
@@ -265,19 +284,19 @@ console.log("apiUser", apiUserRaw);
 
             {/* Position */}
             <div>
-              <Label htmlFor="positionId">Vəzifə *</Label>
+              <Label htmlFor="positionId">{t('position')}</Label>
               <Controller
                 name="positionId"
                 control={control}
                 render={({ field }) => (
                   <Select 
-                    value={field.value?.toString()} 
+                    value={field.value && field.value > 0 ? field.value.toString() : undefined} 
                     onValueChange={(value) => field.onChange(parseInt(value))}
                   >
                     <SelectTrigger className="w-full">
                       <div className="flex items-center">
                         <Briefcase className="h-4 w-4 mr-2 text-gray-400" />
-                        <SelectValue placeholder="Vəzifə seçin" />
+                        <SelectValue placeholder={t('selectPosition')} />
                       </div>
                     </SelectTrigger>
                     <SelectContent>
@@ -297,7 +316,7 @@ console.log("apiUser", apiUserRaw);
 
             {/* Role (Read-only) */}
             <div>
-              <Label htmlFor="role">Rol</Label>
+              <Label htmlFor="role">{t('role')}</Label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Shield className="h-5 w-5 text-gray-400" />
@@ -305,12 +324,12 @@ console.log("apiUser", apiUserRaw);
                 <Input
                   type="text"
                   id="role"
-                  value={typeof (apiUserRaw as any)?.role === 'string' ? ((apiUserRaw as any).role === 'admin' ? 'Admin' : (apiUserRaw as any).role) : ''}
+                  value={apiUserRaw?.role?.name || ''}
                   disabled
                   className="pl-10 bg-gray-50 text-gray-500"
                 />
               </div>
-              <p className="mt-1 text-xs text-gray-500">Rol dəyişdirilə bilməz</p>
+              <p className="mt-1 text-xs text-gray-500">{t('roleReadonly')}</p>
             </div>
           </div>
 
@@ -320,7 +339,7 @@ console.log("apiUser", apiUserRaw);
               disabled={isSubmitting}
             >
               <Save className="w-4 h-4 mr-2" />
-              {isSubmitting ? 'Saxlanılır...' : 'Update'}
+              {isSubmitting ? t('saving') : t('submit')}
             </Button>
           </div>
         </form>

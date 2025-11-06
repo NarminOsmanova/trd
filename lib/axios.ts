@@ -1,4 +1,4 @@
-import axios from "axios"
+import axios, { AxiosError, AxiosRequestHeaders, AxiosRequestConfig, AxiosHeaders } from "axios"
 
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_BASE_URL || "http://108.142.200.177:8002/api";
@@ -108,6 +108,10 @@ export function setAuthTokens(tokens: AuthTokens): void {
   document.cookie = refreshTokenCookie;
   
   devLog("Tokens set successfully");
+  // Schedule proactive refresh based on new access token
+  if (tokens.accessToken) {
+    scheduleProactiveRefresh(tokens.accessToken);
+  }
 }
 
 /**
@@ -167,9 +171,13 @@ function getRefreshToken(): string | null {
  */
 function isTokenExpired(token: string): boolean {
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
+    const payload = decodeJwtPayload(token);
+    if (!payload || typeof payload.exp !== 'number') {
+      return true;
+    }
     const currentTime = Math.floor(Date.now() / 1000);
-    const isExpired = payload.exp < currentTime;
+    // add small skew (60s) to avoid race conditions
+    const isExpired = payload.exp <= currentTime + 60;
     
     if (isExpired) {
       devLog("Token is expired", { exp: payload.exp, now: currentTime });
@@ -180,6 +188,13 @@ function isTokenExpired(token: string): boolean {
     devLog("Token validation error", error);
     return true;
   }
+}
+
+function isTokenExpiringSoon(token: string, thresholdSec: number = 60): boolean {
+  const exp = getTokenExp(token);
+  if (!exp) return true;
+  const nowSec = Math.floor(Date.now() / 1000);
+  return exp <= nowSec + thresholdSec;
 }
 
 /**
@@ -200,8 +215,16 @@ async function refreshAccessToken(): Promise<string | null> {
       baseURL: API_BASE_URL,
     });
     
+    const locale = getCurrentLocaleFromCookie();
+    const currentAccessToken = getAuthToken();
+    console.log("currentAccessToken", currentAccessToken)
     const response = await refreshClient.post('/web/user/refresh-token', null, {
-      params: { RefreshToken: refreshToken }
+      params: { RefreshToken: refreshToken },
+      headers: {
+        ...(currentAccessToken ? { Authorization: `Bearer ${currentAccessToken}` } : {}),
+        'Accept-Language': locale,
+        'Content-Type': 'application/json',
+      },
     });
     
     if (response.data.data?.token) {
@@ -221,12 +244,62 @@ async function refreshAccessToken(): Promise<string | null> {
       devLog("Token refresh successful");
       return newAccessToken;
     }
-  } catch (error) {
+  } catch (error: unknown) {
     devLog("Token refresh failed", error);
     clearAuthCookies();
+    // If refresh failed with 400/401, immediately redirect to login
+    // const status = (error as AxiosError)?.response?.status;
+    // if (typeof window !== 'undefined' && (status === 400 || status === 401)) {
+    //   window.location.href = '/login';
+    // }
   }
   
   return null;
+}
+
+// Proactive refresh helpers
+let proactiveRefreshTimer: number | null = null;
+
+interface JwtPayload {
+  exp: number;
+  [key: string]: unknown;
+}
+
+function decodeJwtPayload(token: string): JwtPayload | null {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64.padEnd(base64.length + (4 - (base64.length % 4)) % 4, '=');
+    return JSON.parse(atob(padded)) as JwtPayload;
+  } catch {
+    return null;
+  }
+}
+
+function getTokenExp(token: string): number | null {
+  const payload = decodeJwtPayload(token);
+  return payload?.exp ?? null;
+}
+
+function clearProactiveRefresh(): void {
+  if (proactiveRefreshTimer !== null) {
+    clearTimeout(proactiveRefreshTimer);
+    proactiveRefreshTimer = null;
+  }
+}
+
+function scheduleProactiveRefresh(token: string): void {
+  if (typeof window === 'undefined') return;
+  const exp = getTokenExp(token);
+  if (!exp) return;
+  const nowSec = Math.floor(Date.now() / 1000);
+  const triggerSec = Math.max(exp - 60 - nowSec, 0); // 60s before expiry
+  const delayMs = triggerSec * 1000;
+  clearProactiveRefresh();
+  proactiveRefreshTimer = window.setTimeout(async () => {
+    devLog('Proactive timer: refreshing token before expiry');
+    await refreshAccessToken();
+  }, delayMs);
 }
 
 // ==================== Axios Interceptors ====================
@@ -248,14 +321,28 @@ axiosInstance.interceptors.request.use(
         devLog("Token expired, attempting proactive refresh...");
         const newToken = await refreshAccessToken();
         token = newToken;
+      } else if (token && isTokenExpiringSoon(token)) {
+        // Refresh shortly before expiry even if still valid
+        devLog('Token expiring soon, refreshing...');
+        const newToken = await refreshAccessToken();
+        token = newToken || token;
       } else if (!token) {
-        // Don't try to refresh if there's no token at all
-        devLog("No token found, skipping auth...");
+        // No access token: try to refresh using refresh token if present
+        const rt = getRefreshToken();
+        if (rt) {
+          devLog("No access token, trying refresh with refresh-token...");
+          const newToken = await refreshAccessToken();
+          token = newToken;
+        } else {
+          devLog("No token found, skipping auth...");
+        }
       }
     }
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      // Ensure timer is scheduled when a request first adds a valid token
+      scheduleProactiveRefresh(token);
     }
     
     // Add Accept-Language header
@@ -281,8 +368,11 @@ axiosInstance.interceptors.response.use(
   (response) => {
     return response;
   },
-  async (error) => {
-    const originalRequest = error.config;
+  async (error: AxiosError) => {
+    const originalRequest = error.config as (AxiosRequestConfig & { _retry?: boolean });
+    if (!originalRequest) {
+      return Promise.reject(error);
+    }
     
     // Handle 401 Unauthorized
     if (error.response?.status === 401 && !originalRequest._retry) {
@@ -295,7 +385,15 @@ axiosInstance.interceptors.response.use(
       if (newToken) {
         devLog("Token refreshed, retrying original request...");
         // Retry original request with new token
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        if (originalRequest.headers instanceof AxiosHeaders) {
+          originalRequest.headers.set('Authorization', `Bearer ${newToken}`);
+        } else {
+          const merged: Record<string, unknown> = {
+            ...(originalRequest.headers as Record<string, unknown> | undefined),
+            Authorization: `Bearer ${newToken}`,
+          };
+          originalRequest.headers = merged as AxiosRequestHeaders;
+        }
         return axiosInstance(originalRequest);
       } else {
         devLog("Token refresh failed, redirecting to login...");
@@ -310,10 +408,11 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(error);
   },
 )
-// function getCurrentLocaleFromCookie() {
-//   if (typeof document !== "undefined") {
-//     const match = document.cookie.match(/(^| )NEXT_LOCALE=([^;]+)/);
-//     return match ? match[2] : "en";
-//   }
-//   return "en";
-// }
+
+// On load, schedule proactive refresh if token exists
+if (typeof window !== 'undefined') {
+  const existing = getAuthToken();
+  if (existing) {
+    scheduleProactiveRefresh(existing);
+  }
+}

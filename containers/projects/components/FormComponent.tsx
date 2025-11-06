@@ -46,17 +46,32 @@ export default function FormComponent({
   // API: Get all users
   const { users: allUsers, isLoading: isLoadingUsers } = useAllUsers();
   
+  // Normalize API users for UI (name, id as string, type)
+  const normalizedUsers = (allUsers as any[]).map((u: any) => {
+    const name = u.set
+      ? `${u.set.firstName || ''} ${u.set.lastName || ''}`.trim()
+      : (u.sets && u.sets.length > 0)
+        ? `${u.sets[0].firstName || ''} ${u.sets[0].lastName || ''}`.trim()
+        : (u.email || '');
+    return {
+      id: (u.id ?? '').toString(),
+      name,
+      email: u.email || '',
+      type: u.type, // 0=user(manager), 1=partner
+    };
+  });
+
   // Filter users by type and search
-  const regularUsers = allUsers
-    .filter((user: any) => user.role === 'user')
-    .filter((user: any) => 
+  const regularUsers = normalizedUsers
+    .filter((user) => user.type === 0)
+    .filter((user) => 
       user.name?.toLowerCase().includes(userSearchTerm.toLowerCase()) ||
       user.email?.toLowerCase().includes(userSearchTerm.toLowerCase())
     );
   
-  const partnerUsers = allUsers
-    .filter((user: any) => user.role === 'partner')
-    .filter((user: any) => 
+  const partnerUsers = normalizedUsers
+    .filter((user) => user.type === 1)
+    .filter((user) => 
       user.name?.toLowerCase().includes(partnerSearchTerm.toLowerCase()) ||
       user.email?.toLowerCase().includes(partnerSearchTerm.toLowerCase())
     );
@@ -128,9 +143,14 @@ export default function FormComponent({
                         ProjectStatus.Draft;
 
       // Prepare members array
-      const members = selectedUsers.map(userId => ({
-        userId: parseInt(userId)
-      }));
+      const members = selectedUsers.map(userId => {
+        const isPartner = partnerUsers.some((u) => u.id === userId);
+        const sharePercent = isPartner ? (partnerPercentages[userId] || 0) : 0;
+        return {
+          userId: parseInt(userId),
+          sharePercent
+        };
+      });
 
       if (initialData && (initialData as any).id) {
         // Update existing project
@@ -355,7 +375,7 @@ export default function FormComponent({
                 </p>
               ) : (
                 <div className="space-y-2">
-                  {regularUsers.map((user: any) => (
+                  {regularUsers.map((user) => (
                     <label
                       key={user.id}
                       className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg"
@@ -367,7 +387,7 @@ export default function FormComponent({
                       <div className="flex items-center space-x-2">
                         <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
                           <span className="text-xs font-medium text-gray-600">
-                            {user.name?.split(' ').map((n: any) => n[0]).join('').toUpperCase()}
+                            {user.name?.split(' ').map((n: string) => n[0]).join('').toUpperCase()}
                           </span>
                         </div>
                         <div>
@@ -424,7 +444,7 @@ export default function FormComponent({
                 </p>
               ) : (
                 <div className="space-y-4">
-                  {partnerUsers.map((user: any) => (
+                  {partnerUsers.map((user) => (
                   <div key={user.id} className="space-y-3">
                     <label className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg">
                       <Checkbox
@@ -434,11 +454,11 @@ export default function FormComponent({
                       <div className="flex items-center space-x-2">
                         <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
                           <span className="text-xs font-medium text-gray-600">
-                            {user.name?.split(' ').map((n: any) => n[0]).join('').toUpperCase()}
+                            {user.name?.split(' ').map((n: string) => n[0]).join('').toUpperCase()}
                           </span>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{user?.name}</p>
+                          <p className="text-sm font-medium text-gray-900">{user.name}</p>
                           <p className="text-xs text-gray-500">{user.email}</p>
                         </div>
                       </div>

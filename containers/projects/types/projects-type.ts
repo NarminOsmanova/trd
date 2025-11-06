@@ -44,6 +44,7 @@ export interface CreateProjectRequest {
   status: ProjectStatus;
   members: {
     userId: number;
+    sharePercent: number;
   }[];
 }
 
