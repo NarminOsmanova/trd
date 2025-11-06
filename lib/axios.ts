@@ -6,11 +6,7 @@ export const API_BASE_URL =
 const isDevelopment = process.env.NODE_ENV === "development";
 
 // Development logging helper
-const devLog = (message: string, ...args: unknown[]) => {
-  if (isDevelopment) {
-    console.log(`🔐 [Auth] ${message}`, ...args);
-  }
-};
+
 
 export const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -72,12 +68,20 @@ function getCookie(name: string): string | null {
   const targetCookie = cookies.find((cookie) => cookie.startsWith(`${name}=`));
   
   if (targetCookie) {
-    const value = targetCookie.split("=")[1];
-    devLog(`Cookie found: ${name}`, value ? `${value.substring(0, 20)}...` : "empty");
-    return value;
+    // Cookie value might be URL-encoded, so we need to decode it
+    // Note: split("=") might split on = inside the value, so we need to handle that
+    const equalsIndex = targetCookie.indexOf("=");
+    const encodedValue = targetCookie.substring(equalsIndex + 1);
+    
+    try {
+      const decodedValue = decodeURIComponent(encodedValue);
+      return decodedValue;
+    } catch (error) {
+      // If decoding fails, return the raw value (might not be encoded)
+      return encodedValue;
+    }
   }
   
-  devLog(`Cookie not found: ${name}`);
   return null;
 }
 
@@ -86,28 +90,21 @@ function getCookie(name: string): string | null {
  */
 export function setAuthTokens(tokens: AuthTokens): void {
   if (typeof document === "undefined") {
-    devLog("SSR environment, cannot set cookies");
     return;
   }
 
   const expirationDate = new Date(tokens.expiration);
   
-  devLog("Setting auth tokens:", {
-    accessToken: tokens.accessToken ? `${tokens.accessToken.substring(0, 20)}...` : "null",
-    expiration: tokens.expiration
-  });
-
-  // Set access token with backend expiration
-  const accessTokenCookie = `auth-token=${tokens.accessToken}; expires=${expirationDate.toUTCString()}; path=/; SameSite=Lax`;
+  // Set access token with backend expiration (encode to handle special characters)
+  const accessTokenCookie = `auth-token=${encodeURIComponent(tokens.accessToken)}; expires=${expirationDate.toUTCString()}; path=/; SameSite=Lax`;
   document.cookie = accessTokenCookie;
   
-  // Set refresh token (longer expiration)
+  // Set refresh token (longer expiration) - encode to handle special characters like =, +, /
   const refreshExpiration = new Date();
   refreshExpiration.setHours(refreshExpiration.getHours() + (tokens.refreshTokenLifeTime || 8760));
-  const refreshTokenCookie = `refresh-token=${tokens.refreshToken}; expires=${refreshExpiration.toUTCString()}; path=/; SameSite=Lax`;
+  const refreshTokenCookie = `refresh-token=${encodeURIComponent(tokens.refreshToken)}; expires=${refreshExpiration.toUTCString()}; path=/; SameSite=Lax`;
   document.cookie = refreshTokenCookie;
   
-  devLog("Tokens set successfully");
   // Schedule proactive refresh based on new access token
   if (tokens.accessToken) {
     scheduleProactiveRefresh(tokens.accessToken);
@@ -123,7 +120,6 @@ export function setCookie(name: string, value: string, expirationDate: Date | st
   const expires = typeof expirationDate === "string" ? new Date(expirationDate) : expirationDate;
   
   document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
-  devLog(`Cookie set: ${name}`);
 }
 
 /**
@@ -133,14 +129,12 @@ export function removeCookie(name: string): void {
   if (typeof document === "undefined") return;
   
   document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; SameSite=Lax`;
-  devLog(`Cookie removed: ${name}`);
 }
 
 /**
  * Clear all auth cookies
  */
 export function clearAuthCookies(): void {
-  devLog("Clearing all auth cookies");
   removeCookie("auth-token");
   removeCookie("refresh-token");
 }
@@ -179,13 +173,9 @@ function isTokenExpired(token: string): boolean {
     // add small skew (60s) to avoid race conditions
     const isExpired = payload.exp <= currentTime + 60;
     
-    if (isExpired) {
-      devLog("Token is expired", { exp: payload.exp, now: currentTime });
-    }
     
     return isExpired;
   } catch (error) {
-    devLog("Token validation error", error);
     return true;
   }
 }
@@ -201,11 +191,8 @@ function isTokenExpiringSoon(token: string, thresholdSec: number = 60): boolean 
  * Refresh access token using refresh token
  */
 async function refreshAccessToken(): Promise<string | null> {
-  devLog("Starting token refresh...");
   const refreshToken = getRefreshToken();
-  console.log("refreshToken", refreshToken)
   if (!refreshToken) {
-    devLog("No refresh token found");
     return null;
   }
 
@@ -217,9 +204,13 @@ async function refreshAccessToken(): Promise<string | null> {
     
     const locale = getCurrentLocaleFromCookie();
     const currentAccessToken = getAuthToken();
-    console.log("currentAccessToken", currentAccessToken)
-    const response = await refreshClient.post('/web/user/refresh-token', null, {
-      params: { RefreshToken: refreshToken },
+    
+    // Manually construct URL with refresh token to avoid double encoding issues
+    // Refresh token is already decoded from cookie, so we encode it once for the URL
+    const encodedRefreshToken = encodeURIComponent(refreshToken);
+    const refreshUrl = `/web/user/refresh-token?RefreshToken=${encodedRefreshToken}`;
+    
+    const response = await refreshClient.post(refreshUrl, null, {
       headers: {
         ...(currentAccessToken ? { Authorization: `Bearer ${currentAccessToken}` } : {}),
         'Accept-Language': locale,
@@ -227,31 +218,38 @@ async function refreshAccessToken(): Promise<string | null> {
       },
     });
     
-    if (response.data.data?.token) {
-      const newAccessToken = response.data.data.token;
-      const expiration = response.data.data.expiration || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    // Check response structure: responseValue contains token, expiration, refreshToken
+    if (response.data?.responseValue?.token) {
+      const responseValue = response.data.responseValue;
+      const newAccessToken = responseValue.token;
+      const expiration = responseValue.expiration || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
       
       // Set new access token
       setCookie("auth-token", newAccessToken, expiration);
       
       // Update refresh token if provided
-      if (response.data.data.refreshToken) {
+      if (responseValue.refreshToken) {
         const refreshExpiration = new Date();
-        refreshExpiration.setHours(refreshExpiration.getHours() + 8760); // 1 year
-        setCookie("refresh-token", response.data.data.refreshToken, refreshExpiration);
+        refreshExpiration.setHours(refreshExpiration.getHours() + (responseValue.refreshTokenLifeTime || 8760));
+        setCookie("refresh-token", responseValue.refreshToken, refreshExpiration);
       }
       
-      devLog("Token refresh successful");
       return newAccessToken;
+    } else {
     }
   } catch (error: unknown) {
-    devLog("Token refresh failed", error);
-    clearAuthCookies();
-    // If refresh failed with 400/401, immediately redirect to login
-    // const status = (error as AxiosError)?.response?.status;
-    // if (typeof window !== 'undefined' && (status === 400 || status === 401)) {
-    //   window.location.href = '/login';
-    // }
+    const axiosError = error as AxiosError;
+    const status = axiosError?.response?.status;
+    const responseData = axiosError?.response?.data;
+    
+    
+    // If refresh failed with 400/401, clear cookies
+    if (status === 400 || status === 401) {
+      clearAuthCookies();
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login';
+      }
+    }
   }
   
   return null;
@@ -297,7 +295,6 @@ function scheduleProactiveRefresh(token: string): void {
   const delayMs = triggerSec * 1000;
   clearProactiveRefresh();
   proactiveRefreshTimer = window.setTimeout(async () => {
-    devLog('Proactive timer: refreshing token before expiry');
     await refreshAccessToken();
   }, delayMs);
 }
@@ -318,23 +315,19 @@ axiosInstance.interceptors.request.use(
     if (!isAuthEndpoint) {
       // Check if token exists and is expired
       if (token && isTokenExpired(token)) {
-        devLog("Token expired, attempting proactive refresh...");
         const newToken = await refreshAccessToken();
         token = newToken;
       } else if (token && isTokenExpiringSoon(token)) {
         // Refresh shortly before expiry even if still valid
-        devLog('Token expiring soon, refreshing...');
         const newToken = await refreshAccessToken();
         token = newToken || token;
       } else if (!token) {
         // No access token: try to refresh using refresh token if present
         const rt = getRefreshToken();
         if (rt) {
-          devLog("No access token, trying refresh with refresh-token...");
           const newToken = await refreshAccessToken();
           token = newToken;
         } else {
-          devLog("No token found, skipping auth...");
         }
       }
     }
@@ -376,14 +369,12 @@ axiosInstance.interceptors.response.use(
     
     // Handle 401 Unauthorized
     if (error.response?.status === 401 && !originalRequest._retry) {
-      devLog("Received 401, attempting token refresh...");
       originalRequest._retry = true;
       
       // Try to refresh token
       const newToken = await refreshAccessToken();
       
       if (newToken) {
-        devLog("Token refreshed, retrying original request...");
         // Retry original request with new token
         if (originalRequest.headers instanceof AxiosHeaders) {
           originalRequest.headers.set('Authorization', `Bearer ${newToken}`);
@@ -396,7 +387,6 @@ axiosInstance.interceptors.response.use(
         }
         return axiosInstance(originalRequest);
       } else {
-        devLog("Token refresh failed, redirecting to login...");
         // Refresh failed - clear cookies and redirect to login
         clearAuthCookies();
         if (typeof window !== "undefined") {
