@@ -69,3 +69,91 @@ export interface TransactionType {
   label: string;
   color: string;
 }
+
+
+// ==================== Types ====================
+
+export interface ApiOperation {
+  id: number;
+  type: number;
+  amount: number;
+  currency: number;
+  date: string;
+  note?: string;
+  receipt?: string;
+  status: number;
+  projectId?: number;
+  projectCategoryId?: number;
+  companyId?: number;
+  toUserId?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateOperationRequest {
+  type: number;
+  amount: number;
+  currency: number;
+  date: string;
+  note?: string;
+  receipt?: File | string;
+  projectId?: number;
+  projectCategoryId?: number;
+  companyId?: number;
+  toUserId?: number;
+}
+
+export interface UpdateOperationRequest {
+  id: number;
+  type: number;
+  amount: number;
+  currency: number;
+  date: string;
+  note?: string;
+  receipt?: File | string;
+  status: number;
+  projectId?: number;
+  projectCategoryId?: number;
+  companyId?: number;
+  toUserId?: number;
+}
+
+export interface ChangeStatusRequest {
+  id: number;
+  status: number;
+  reason?: string;
+}
+
+export interface OperationFilters {
+  pageNumber?: number;
+  pageSize?: number;
+  search?: string;
+  fromDate?: string;
+  toDate?: string;
+  projectId?: number;
+  categoryId?: number;
+  companyId?: number;
+  type?: number;
+  status?: number;
+  isApproved?: boolean;
+}
+
+export interface PaginatedOperationsResponse {
+  statusCode: number;
+  message: string;
+  responseValue: {
+    items: ApiOperation[];
+    pageNumber: number;
+    totalPages: number;
+    pageSize: number;
+    totalCount: number;
+    hasPreviousPage: boolean;
+    hasNextPage: boolean;
+  };
+}
+
+export interface GetOperationByIdResponse {
+  statusCode: number;
+  message: string;
+  responseValue: ApiOperation;
+}
